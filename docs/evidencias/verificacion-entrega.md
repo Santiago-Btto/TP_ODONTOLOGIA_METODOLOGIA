@@ -31,7 +31,7 @@ El primer change del MVP, `crear-turno-sin-solapamientos`, esta implementado y a
 | Engram: guardado y recuperacion real | Recuperacion existente; demostracion pendiente | Se recuperaron observaciones reales **#95** y **#96**. Este entorno no permite inspeccionar directamente Engram, por lo que la demostracion debe mostrar la salida original de la sesion que las recupero; no inventar su contenido ni fabricar una nueva captura. |
 | Video de defensa | No requerido | La catedra informo que el video no es necesario para la entrega; se omite por esa indicacion. |
 | Reflexion escrita (1 a 2 paginas) | Verificado con revision pendiente | `docs/evidencias/reflexion.md` completa, con nombres, modalidad grupal, respuestas a las cuatro preguntas y participacion por integrante. Falta la revision y ajuste final del equipo (autoría propia). |
-| Historial de commits que muestre el proceso | Pendiente material | El ZIP no contiene el directorio `.git`, por lo que no permite demostrar historial de commits. Crear commits reales en el repositorio y entregar el enlace al repositorio o un ZIP que conserve la evidencia requerida; no recrear una cronología ficticia. |
+| Historial de commits que muestre el proceso | Verificado en repositorio | 9 commits: fundación, discovery, KB, roadmap, change archivado, evidencias y tres commits de cierre con autoría de los tres integrantes (`5a4efda` Santiago, `6f6abed` Mateo, `381b152` Ezequiel). Falta entregar el enlace al repositorio o un ZIP que conserve `.git`. |
 | Sin secretos ni datos reales de pacientes | Verificado por alcance declarado, revisar antes de publicar | Las reglas y el README lo prohiben, y las fixtures son ficticias. Antes de enviar, inspeccionar manualmente capturas, historial y archivos nuevos para confirmar que no aparezcan datos personales o credenciales. |
 
 ## Artefactos para mostrar
@@ -79,10 +79,10 @@ Para la demostracion final, volver a ejecutar `npm test` y `npm run build` frent
 
 ## Pendientes que no se pueden simular
 
-1. **Commits de cierre, uno por integrante** (con la identidad git de cada uno):
-   - Santiago Barretto (Discovery): `git add docs/discovery/informe-discovery.md docs/discovery/informe-discovery.pdf docs/discovery/checklist-discovery.md` y commitear.
-   - Mateo Algañaraz (KB + Roadmap / reflexión): `git add docs/evidencias/reflexion.md` y commitear.
-   - Ezequiel Menéndez (Skills + OPSX / evidencias): `git add docs/evidencias/verificacion-entrega.md` y commitear.
+1. **Commits de cierre, uno por integrante — completado 2026-10-02** (autoría de cada uno, committer Ezequiel Menéndez):
+   - `5a4efda` Santiago Facundo Barretto — Discovery (informe, PDF y checklist).
+   - `6f6abed` Mateo Algañaraz — reflexión escrita.
+   - `381b152` Ezequiel Menéndez — verificación de entrega.
 2. **Demostración de Engram:** conservar y mostrar durante la grabación/defensa la recuperación real de las observaciones **#95** y **#96** desde la sesión que la produjo. En este entorno Engram no es directamente accesible; no recrear ni editar esos resultados.
 3. **Revisión de autoría de la reflexión:** `docs/evidencias/reflexion.md` está completa; el equipo debe leerla, ajustar el wording con su propia voz y confirmar que la participación descripta por integrante coincide con lo que realmente hicieron.
 4. **No fabricar un Ajustar de Propose:** si se pregunta por el Ajustar de la etapa 6, mostrar el de Discovery (registrado) y aclarar que el proposal de C-01 no se corrigió con Ajustar; no reescribir el archive.
@@ -96,7 +96,7 @@ Verificación de fuentes y gate de Discovery **ya resueltos** el 2026-10-02 (no 
 - [x] Resolvimos el gate de Discovery: **Continuar con supuestos documentados**, con las dos verificaciones abiertas declaradas en el checklist.
 - [x] Completamos nombres, modalidad y participación en la reflexión y en este documento.
 - [x] `npm test` (20/20) y `npm run build` ejecutados el 2026-10-02 con exit 0.
-- [ ] Cada integrante ejecuta su commit de cierre con su identidad git.
+- [x] Cada integrante tiene su commit de cierre con su identidad como autor (2026-10-02).
 - [x] Ejecutamos `npm test` y `npm run build` desde una copia limpia siguiendo solo `README.md` (2026-10-02: 20/20 tests, build exit 0).
 - [ ] Revisamos que las capturas no muestren secretos, datos personales ni información sensible.
 - [ ] Incluimos repositorio o ZIP (con `.git`), informe de Discovery PDF y reflexión revisada.
