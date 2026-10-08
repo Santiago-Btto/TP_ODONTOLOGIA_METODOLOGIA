@@ -10,13 +10,15 @@
 **Justificación**: Reduce alcance y permite probar el comportamiento de disponibilidad aislado.
 **Trade-offs aceptados**: El MVP no es un sistema clínico o administrativo integral ni cubre todos los diferenciadores de mercado.
 
-### DD-02 — Ejecutar el dominio localmente, sin UI ni infraestructura
+### DD-02 — Stack definido: FastAPI + PostgreSQL + React
 
-**Decisión**: Usar Node.js y TypeScript sin dependencias externas, con `node:test` y repositorios en memoria.
-**Contexto**: El alcance indicado es un MVP de dominio ejecutable y reproducible sin servicios externos.
-**Alternativas consideradas**: Aplicación web, API REST o persistencia en base de datos desde el inicio.
-**Justificación**: Facilita TDD de invariantes y elimina necesidad de cuentas o infraestructura.
-**Trade-offs aceptados**: No existe interfaz, persistencia durable ni acceso multiusuario en esta etapa.
+**Decisión**: Backend en Python 3.12 con FastAPI, SQLAlchemy 2.0, PostgreSQL, JWT para autenticación, Redis para funcionalidades asincrónicas y Docker / Docker Compose; frontend en React + TypeScript + Vite. Pruebas con pytest contra PostgreSQL real.
+**Contexto**: El stack es una definición de la cátedra para el Sistema Odontológico. La versión original de esta decisión (2026-10-01) fijaba Node.js + TypeScript con `node:test` y repositorios en memoria; el equipo la revisó y aplicó **Ajustar** el 2026-10-08 porque contradecía ese requisito.
+**Alternativas consideradas**: Mantener el núcleo Node.js en memoria y migrar más adelante (descartada: acumula código en un stack que no se va a usar y posterga la prevención transaccional de solapamientos que el Discovery marca como imprescindible).
+**Justificación**: PostgreSQL permite imponer la regla anti-solapamiento también en la base (`EXCLUDE USING gist`), cerrando la ventana de doble reserva concurrente. FastAPI expone los casos de uso sin mover reglas al controlador.
+**Trade-offs aceptados**: Ejecutar los tests requiere PostgreSQL (Docker Compose o instalación local). El dominio sigue siendo Python puro y se prueba sin base.
+
+> Historial: el change C-01 se implementó y archivó con el stack anterior (`openspec/changes/archive/2026-10-01-crear-turno-sin-solapamientos/`). El change C-01b lo reimplementa con este stack sin cambiar el comportamiento especificado.
 
 ### DD-03 — El dominio es la autoridad de disponibilidad
 

@@ -24,11 +24,14 @@ La prioridad es el núcleo de agenda para consultorios del mercado argentino: re
 - Aceptar turnos contiguos: el inicio de uno puede coincidir exactamente con el fin de otro.
 - Reprogramar o cancelar un turno y liberar su intervalo anterior.
 - Registrar historial básico de cambios y confirmación.
-- Ejecutar reglas y pruebas localmente sin cuentas ni servicios externos.
+- Registrar datos mínimos ficticios de paciente (alta y búsqueda) para poder asignarle turnos.
+- Registrar un recordatorio manual o simulado del turno, sin enviar mensajes reales (sección D del Discovery).
+- Ofrecer una agenda web diaria/semanal (React) sobre la API autenticada.
+- Ejecutar reglas y pruebas localmente sin cuentas ni servicios externos (PostgreSQL vía Docker Compose o instalación local).
 
 ## Fuera de alcance
 
-- Interfaz web, móvil o portal de paciente.
+- Aplicación móvil o portal de autogestión del paciente (la agenda web para recepción sí está en el MVP).
 - Integraciones reales con WhatsApp, Mercado Pago o Google Calendar.
 - Odontograma, historia clínica, imágenes, recetas, firma o tratamientos clínicos completos.
 - Facturación ARCA, obras sociales, liquidaciones, conciliación de cobros y seña.
@@ -40,4 +43,4 @@ La prioridad es el núcleo de agenda para consultorios del mercado argentino: re
 - Las pruebas cubren al menos un turno válido, un conflicto por profesional, un conflicto por box y un caso de turnos contiguos.
 - Ninguna operación de alta o reprogramación crea reservas superpuestas para recursos activos.
 - Los cambios de horario y estado quedan representados en el historial básico definido para el MVP.
-- La suite se ejecuta localmente con datos completamente ficticios y sin dependencias externas.
+- La suite se ejecuta localmente con datos completamente ficticios y sin cuentas externas; PostgreSQL rechaza por restricción cualquier solapamiento que eluda la aplicación.

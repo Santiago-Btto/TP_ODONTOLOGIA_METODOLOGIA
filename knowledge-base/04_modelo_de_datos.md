@@ -53,7 +53,7 @@ Box          1 ---- * BloqueoDeDisponibilidad
 
 - Atributos: `id: string`, `pacienteId: string`, `profesionalId: string`, `boxId: string`, `prestacionId: string`, `inicio: DateTime`, `fin: DateTime`, `estado: EstadoTurno`.
 - Estados identificados: pendiente/programado, confirmado y cancelado; la nomenclatura final debe acordarse.
-- Constraints: `fin > inicio`; recursos y paciente requeridos; no puede intersectar un turno activo o bloqueo del mismo profesional o box.
+- Constraints: `fin > inicio`; recursos y paciente requeridos; no puede intersectar un turno activo o bloqueo del mismo profesional o box. En PostgreSQL: `CHECK (fin > inicio)` y dos restricciones `EXCLUDE USING gist` (por `profesional_id` y por `box_id`) sobre `tstzrange(inicio, fin, '[)')` para turnos activos.
 - Relaciones: pertenece a un paciente, profesional, box y prestación; tiene historial de cambios.
 
 ### BloqueoDeDisponibilidad

@@ -27,4 +27,4 @@ Base de conocimiento generada desde `docs/discovery/informe-discovery.md`, `docs
 
 ## Resumen Ejecutivo
 
-El MVP es un núcleo de dominio de turnos odontológicos ejecutable localmente con Node.js y TypeScript, sin UI, infraestructura, dependencias externas ni datos reales de pacientes. Su comportamiento crítico es impedir solapamientos de profesional y box, aceptar turnos contiguos y conservar trazabilidad básica al cambiar estados u horarios. Las decisiones clínicas, legales y operativas no validadas permanecen registradas como preguntas abiertas.
+El MVP es un sistema de turnos odontológicos con backend Python/FastAPI, SQLAlchemy y PostgreSQL (Redis para tareas asincrónicas, Docker Compose para el entorno) y frontend React + TypeScript + Vite, sin datos reales de pacientes. El stack se ajustó el 2026-10-08 (ver DD-02); la versión inicial era un núcleo Node.js en memoria. Su comportamiento crítico es impedir solapamientos de profesional y box, aceptar turnos contiguos y conservar trazabilidad básica al cambiar estados u horarios. Las decisiones clínicas, legales y operativas no validadas permanecen registradas como preguntas abiertas.

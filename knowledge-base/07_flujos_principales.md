@@ -15,7 +15,7 @@
 6. El caso de uso devuelve el turno creado.
 
 ```text
-Recepción -> Caso de uso -> Dominio disponibilidad -> Repositorio en memoria
+Recepción -> Caso de uso -> Dominio disponibilidad -> Repositorio SQLAlchemy -> PostgreSQL
 Recepción <- Resultado    <- Turno válido          <- Guardado
 ```
 
@@ -69,7 +69,7 @@ Recepción <- Resultado    <- Turno válido          <- Guardado
 **Pasos**:
 
 1. Se registra un intervalo válido asociado a un profesional o box.
-2. El dominio persiste el bloqueo en memoria.
+2. El caso de uso persiste el bloqueo en PostgreSQL mediante el repositorio SQLAlchemy.
 3. Altas y reprogramaciones futuras consultan el bloqueo junto a los turnos.
 4. Una operación intersectante se rechaza de forma consistente, cualquiera sea su canal futuro.
 
