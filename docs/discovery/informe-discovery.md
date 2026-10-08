@@ -5,7 +5,7 @@
 **Integrantes:** Santiago Barretto, Mateo Algañaraz, Ezequiel Menéndez  
 **Fecha de consulta de fuentes:** 2026-10-01  
 **Verificación personal de fuentes:** 2026-10-02  
-**Versión:** 1.1 - investigación documental inicial verificada y corregida
+**Versión:** 1.2 - criterio de orden, fortalezas/limitaciones/adopción por sistema y revisión complementaria (2026-10-08)
 
 > Alcance y criterio de evidencia. Este informe releva páginas oficiales y centros de ayuda públicos. “Comprobado” significa que la funcionalidad aparece en la fuente enlazada; no implica una prueba independiente del producto. “Afirmación comercial” identifica una declaración del proveedor aún no validada en una demo. “No evidenciado” no significa que el producto no posea la función: significa que no se localizó respaldo público en las fuentes consultadas. Los precios, planes y obligaciones regulatorias deben reconfirmarse antes de contratar.
 
@@ -23,6 +23,8 @@ Los cinco proveedores prioritarios para pedir demo son Dentalink, AgendaPro Dent
 
 Cada vínculo de “Fuente” lleva a la página oficial concreta relevada el 2026-10-01. Las celdas condensan sólo atributos publicados allí. **FC** = funcionalidad clínica; **ADM** = administración/cobros; **SEG** = seguridad, exportación o trazabilidad. Una ausencia se escribe literalmente “No evidenciado”. El país se informa sólo si la fuente lo declara o si el proveedor se presenta expresamente como local; de otro modo se conserva “No evidenciado”.
 
+**Criterio de orden por relevancia para Argentina.** Filas 1 a 9: productos con oferta argentina publicada (página `/ar` del proveedor o proveedor que se declara argentino). Filas 10 a 15: productos sin presencia argentina evidenciada, que sirven como referencia funcional (país no declarado, Chile, Brasil, México/Perú). Dentro de cada grupo se priorizó la amplitud de evidencia pública sobre agenda y recursos; el orden cuantitativo está en la matriz B.
+
 > **Actualización 2026-10-02.** Seis fuentes fueron abiertas y contrastadas personalmente por el equipo (filas 1, 2, 3, 4, 11 y 13). Las correcciones resultantes ya están incorporadas en las tablas A y B y en el análisis C; el detalle está en [Verificación de fuentes](#verificación-de-fuentes).
 
 | # | Producto / proveedor / país declarado | Segmento y modalidad | Agenda y capacidad | Turnos digitales y automatización | FC | ADM e integraciones | Operación, SEG y comercial | Fuente y fecha |
@@ -31,7 +33,7 @@ Cada vínculo de “Fuente” lleva a la página oficial concreta relevada el 20
 | 2 | AgendaPro / AgendaPro Inc. / No evidenciado | Clínicas y salud; SaaS/web y app | Turnos configurables por práctica/profesional; uno o varios sillones | Reserva 24/7, sitio/enlace, WhatsApp, SMS y email | Historia clínica dental, tratamientos e imágenes | Pagos/señas, comisiones, caja y reportes; pago online disponible en AR | Seguridad, auditoría, exportación y precio publicado: No evidenciado; prueba gratuita: afirmación comercial | [Dental AR](https://agendapro.com/ar/dental/software-odontologico) y [sitio de reservas](https://ayuda.agendapro.com/es/articles/6126081-como-configuro-mi-sitio-web) - 2026-10-01, verificada 2026-10-02 |
 | 3 | DentalSoft / DentalSoft / Argentina (equipo argentino declarado) | Clínicas y profesionales; nube/SaaS | Día, semana y mes; bloqueos, urgencias, multi-sucursal y sobreturnos con detección de solapamiento | Turnos online/web (plan Pro), chatbot; recordatorios por WhatsApp/email y actualización por confirmación/cancelación | Ficha, odontograma FDI e historial | Caja/cobros (efectivo, tarjeta, transferencia, Mercado Pago y obra social), presupuestos, liquidaciones de profesionales/obras sociales, reportes; Google Calendar | Precios publicados: gratis 6 meses (hasta 50 turnos), Gestión $30.000/mes y Pro $60.000/mes (+$10.000 por profesional adicional); seguridad, exportación, API y ARCA: No evidenciado | [Producto](https://www.dentalsoft.com.ar/) - 2026-10-01, verificada 2026-10-02 |
 | 4 | Denteo Clínica / Denteo / Argentina (“Hecho en Argentina”) | Consultorios, clínicas y laboratorios; nube | Agenda visual; sillones, prevención de solapamientos y duración variable: No evidenciado | WhatsApp con plantillas aprobadas; turnos online, cancelación y reprogramación: No evidenciado | Historia clínica con odontograma y presupuestos: comprobado en la página; periodontograma: No evidenciado | Facturación electrónica ARCA, Mercado Pago, Google Calendar y WhatsApp Business declarados | Servidor propio en Argentina y respaldo diario fuera del servidor declarados; Ley 25.326 citada; exportación, auditoría, roles de la clínica y API: No evidenciado; prueba 15 días | [Producto](https://denteo.com.ar/) - 2026-10-01, verificada 2026-10-02 |
-| 5 | Dental-IA / Dental-IA / Argentina (presentación pública) | Consultorios odontológicos; plataforma web | Agenda y disponibilidad por profesional/box: No evidenciado | Asistente oficial WhatsApp: confirma, cancela, reprograma y cobra seña por Mercado Pago | Odontograma digital multicapa FDI; ficha/anamnesis e imágenes: No evidenciado | Mercado Pago comprobado; caja, ARCA, obras sociales y reportes: No evidenciado | Integración oficial con Meta: afirmación comercial; roles, auditoría, exportación, precios y seguridad: No evidenciado | [Producto](https://www.dentalia.com.ar/) - 2026-10-01 |
+| 5 | Dental-IA / Dental-IA / Argentina (presentación pública) | Consultorios odontológicos; plataforma web | Agenda y disponibilidad por profesional/box: No evidenciado | Asistente oficial WhatsApp: confirma, cancela, reprograma y cobra seña por Mercado Pago | Odontograma digital multicapa FDI; ficha/anamnesis e imágenes: No evidenciado | Mercado Pago comprobado; caja, ARCA, obras sociales y reportes: No evidenciado | Precios publicados (consulta 2026-10-08): Consultorio Independiente $125.000 ARS/mes (1 a 3 profesionales) y Centro Odontológico $195.000 ARS/mes (5 a 10); prueba 15 días; integración oficial con Meta y “sobreturnos inteligentes”: afirmación comercial; roles, auditoría, exportación y seguridad: No evidenciado | [Producto](https://www.dentalia.com.ar/) - 2026-10-01, revisada 2026-10-08 |
 | 6 | Dental Manager / Dental Manager / Argentina (declarado) | Clínica; SaaS/nube | Día, semana o mes; multi-profesional, horarios y sin solapamientos (afirmación comercial) | Bot WhatsApp 24/7 para alta, cambio y cancelación de turnos | Historial, odontograma, prestaciones y evolución | Obra social en ficha; caja, pagos, ARCA, Mercado Pago y reportes: No evidenciado | Nube y prueba de 30 días; roles, auditoría, exportación, seguridad y precio: No evidenciado | [Producto](https://dentalmanager.com.ar/) - 2026-10-01 |
 | 7 | Hi Órbita / Órbita Gestión / Argentina (declarado) | Clínicas y consultorios; sistema de gestión + asistente | Agenda por sillón y por profesional | Asistente de WhatsApp que gestiona turnos: afirmación comercial; reserva web, confirmación y cancelación: No evidenciado | Ficha con odontograma | Obras sociales y caja; facturación, MP, ARCA y reportes: No evidenciado | Seguridad, auditoría, exportación, roles y precios: No evidenciado | [Producto](https://hiorbita.com/) - 2026-10-01 |
 | 8 | Dentiqa / Dentiqa / Argentina (mercado AR declarado) | Clínicas; SaaS, disponible en LatAm | Multi-dentista, día/semana, bloqueos por profesional y validación de horario | Chatbot IA WhatsApp 24/7, recordatorios, campañas; reserva web/enlace: No evidenciado | Odontograma y periodontograma, imágenes, plan/presupuesto, firma y consentimientos | Estadísticas e ingresos facturados; Mercado Pago, ARCA y obras sociales: No evidenciado | Meta Business API oficial: afirmación comercial; multi-clínica; auditoría/exportación/seguridad/precios: No evidenciado | [Producto](https://dentiqa.app/ar) - 2026-10-01 |
@@ -42,6 +44,28 @@ Cada vínculo de “Fuente” lleva a la página oficial concreta relevada el 20
 | 13 | Simples Dental / Simples Dental / Brasil (mercado BR declarado) | Clínicas odontológicas; agenda online, web/app | Día/semana/profesional/silla, control de sillas y panel de encajes | Enlace 24h, confirmaciones y recordatorios WhatsApp/SMS/app; Copiloto WhatsApp; Secretária IA en pre-lanzamiento | Prontuario/historial; odontograma, imágenes y presupuestos: No evidenciado en fuente principal | Gestión financiera y reportes; integraciones argentinas/MP/ARCA: No evidenciado | Permisos de agenda; LGPD: afirmación comercial; prueba 7 días sin tarjeta; el envío automático requiere saldo de WhatsApp (costo por mensaje); exportación/auditoría/API: No evidenciado | [Agenda](https://www.simplesdental.com/agenda-online) y [ayuda WhatsApp](https://ajuda.simplesdental.com/pt-BR/articles/3659017-como-ativar-a-confirmacao-de-consulta-automatica-por-whatsapp) - 2026-10-01, verificada 2026-10-02 |
 | 14 | Clinicorp / Clinicorp / Brasil (operación brasileña; origen legal no evidenciado) | Clínicas odontológicas; SaaS | Agenda inteligente; recursos/sillones y prevención de solapamiento: No evidenciado | Confirmación automática por WhatsApp; SMS, email y app Clini.me publicados | Prontuario digital; odontograma/periodontograma e imágenes: No evidenciado en fuente revisada | Informes sobre faltas/desmarcaciones; cobros/facturación/integraciones AR: No evidenciado | Seguridad, exportación, auditoría, roles, precios y API: No evidenciado | [Producto](https://www.clinicorp.com/) y [material oficial](https://conteudos.clinicorp.com/hubfs/Materiais%20Ricos/Checklist%20Guia%20de%20atividades%20para%20a%20secret%C3%A1ria%20de%20odontologia.pdf) - 2026-10-01 |
 | 15 | Odensys / Odensys / México y Perú (mercados declarados; origen legal no evidenciado) | Odontólogos y clínicas; nube | Agenda y recordatorios; recursos/sillones, reserva, cancelación y reprogramación: No evidenciado | Recordatorios; WhatsApp, enlace, chatbot y campañas: No evidenciado | Historia clínica y odontograma | Facturación y pagos; integraciones locales AR/MP/ARCA: No evidenciado | Acceso desde cualquier dispositivo; seguridad, exportación, auditoría, roles, precios y API: No evidenciado | [Producto](https://odensys.com/software-dental) - 2026-10-01 |
+
+### A.2 Fortalezas, limitaciones y evidencia de adopción
+
+Síntesis por sistema derivada **sólo** de las celdas de la tabla A. La evidencia de adopción se relevó el 2026-10-08 en la misma URL de la tabla; toda cifra de clientes es una **afirmación comercial** del proveedor, no un dato auditado.
+
+| # | Producto | Fortalezas evidenciadas | Limitaciones o vacíos de evidencia | Evidencia de adopción (2026-10-08) |
+|---:|---|---|---|---|
+| 1 | Dentalink | Agenda por profesional con ocupación de sillones; reserva 24/7 multicanal; odontograma y periodontograma | Sin precios, API ni integraciones argentinas (MP/ARCA) publicadas | No evidenciado en la URL relevada |
+| 2 | AgendaPro Dental | Reserva sin registro, sillones, seña/pagos con pago online en AR | Generalista (no exclusivo de odontología); seguridad, auditoría y exportación sin evidencia | “Más de 135.000 profesionales” y testimonios: afirmación comercial |
+| 3 | DentalSoft | Bloqueos, sobreturnos con detección de solapamiento, Mercado Pago, obras sociales, precios publicados | Seguridad, exportación, API y ARCA sin evidencia; turnos online sólo en plan Pro | “Más de 300 clínicas en Argentina” y testimonios: afirmación comercial |
+| 4 | Denteo | Integraciones locales declaradas (ARCA, MP, Google Calendar, WhatsApp Business); servidor en Argentina y respaldo diario declarados | Sin evidencia de sillones, solapamientos, turnos online ni exportación | No evidenciado en la URL relevada |
+| 5 | Dental-IA | Asistente de WhatsApp que confirma, cancela, reprograma y cobra seña con Mercado Pago; precios publicados | Agenda por profesional/box sin evidencia; caja, ARCA y seguridad sin evidencia | No evidenciado en la URL relevada |
+| 6 | Dental Manager | Agenda multi-profesional; bot de WhatsApp para alta, cambio y cancelación | “Sin solapamientos” es afirmación comercial; administración, roles y precios sin evidencia | No evidenciado en la URL relevada |
+| 7 | Hi Órbita | Agenda por sillón y por profesional; obras sociales y caja | Asistente de WhatsApp sólo como afirmación comercial; facturación, seguridad y precios sin evidencia | Nombres de “clínicas que ya confían” y testimonios; declara haber escuchado a 52 odontólogos: afirmación comercial |
+| 8 | Dentiqa | Bloqueos por profesional; clínica completa (odontograma, periodontograma, consentimientos) | Reserva web, Mercado Pago, ARCA y obras sociales sin evidencia | No evidenciado en la URL relevada |
+| 9 | OdontoGRAMA | Administración local: cuentas corrientes, facturación a prepagas/obras sociales; cuenta gratis | Proveedor no identificado; sin evidencia de recursos, solapamientos ni turnos digitales | No evidenciado en la URL relevada |
+| 10 | Odontosys | Clínica completa (RX, odontograma, periodontograma); confirmación por WhatsApp/email | Recursos, reserva online e integraciones locales sin evidencia; país no declarado | Testimonios de clínicas de Montevideo (Uruguay): afirmación comercial |
+| 11 | Dentios | Agenda por doctor/box; precios y seguridad publicados; plan gratuito | Integraciones chilenas (POS TUU, boleta) sin equivalente argentino | Sección de testimonios: afirmación comercial |
+| 12 | DentalQub | Precios públicos en UF y prueba sin tarjeta; fichas y odontograma | Recursos y recordatorios sin evidencia; orientado a normativa chilena | No evidenciado en la URL relevada |
+| 13 | Simples Dental | Agenda por silla; confirmaciones WhatsApp/SMS documentadas en el centro de ayuda | Mercado brasileño; costo por mensaje de WhatsApp; sin integraciones argentinas | “+19 mil clínicas atendidas”: afirmación comercial |
+| 14 | Clinicorp | Confirmación automática por WhatsApp; reportes de faltas | Recursos, odontograma, precios y seguridad sin evidencia en la fuente revisada | “Más de 32 mil clínicas en Brasil”: afirmación comercial |
+| 15 | Odensys | Historia clínica, odontograma, facturación y pagos | Reserva, WhatsApp, recursos e integraciones locales sin evidencia | No evidenciado en la URL relevada |
 
 ### Observaciones de evidencia
 
@@ -67,13 +91,13 @@ Cada vínculo de “Fuente” lleva a la página oficial concreta relevada el 20
 | Denteo | 3 | 2 | 4 | 4 | 2 | 2 | 3 | **2,90** |
 | DentalQub | 2 | 3 | 2 | 4 | 2 | 3 | 5 | **2,75** |
 | Dental Manager | 4 | 3 | 3 | 1 | 3 | 0 | 4 | **2,70** |
-| Dental-IA | 3 | 3 | 4 | 1 | 4 | 0 | 2 | **2,60** |
+| Dental-IA | 3 | 3 | 4 | 1 | 4 | 0 | 4 | **2,70** |
 | Hi Órbita | 3 | 3 | 3 | 2 | 2 | 0 | 1 | **2,35** |
 | Clinicorp | 3 | 2 | 3 | 2 | 3 | 0 | 1 | **2,25** |
 | Odensys | 2 | 4 | 1 | 3 | 1 | 0 | 3 | **2,15** |
 | OdontoGRAMA | 2 | 2 | 1 | 4 | 1 | 1 | 5 | **2,10** |
 
-**Correcciones de la verificación personal (2026-10-02).** DentalSoft pasó de 2 a 4 en precio/publicación de planes (antes “No evidenciado”, ahora con montos publicados en la fuente oficial); Dentios de 1 a 2 en SEG y Denteo de 1 a 2 en SEG (respaldos y seguridad declarados con detalle en la fuente). El resto de las notas no cambió. La selección de demos de la sección D no sigue el orden exacto de esta matriz: además de la puntuación considera cercanía al mercado argentino.
+**Correcciones de la verificación personal (2026-10-02).** DentalSoft pasó de 2 a 4 en precio/publicación de planes (antes “No evidenciado”, ahora con montos publicados en la fuente oficial); Dentios de 1 a 2 en SEG y Denteo de 1 a 2 en SEG (respaldos y seguridad declarados con detalle en la fuente). El resto de las notas no cambió. **Corrección de la revisión complementaria (2026-10-08):** Dental-IA pasó de 2 a 4 en precio/adopción por publicar montos en su sitio (mismo criterio aplicado a DentalSoft); total 2,60 → 2,70. La selección de demos de la sección D no sigue el orden exacto de esta matriz: además de la puntuación considera cercanía al mercado argentino.
 
 ## C. Análisis competitivo
 
@@ -175,9 +199,19 @@ Cada integrante del equipo abrió las siguientes fuentes en un navegador y contr
 
 **Resultado agregado:** 6 de 6 fuentes abiertas; 4 requirieron corrección del informe (Dentalink, DentalSoft, Dentios, Denteo), 1 se confirmó con matiz (Simples Dental) y 1 se confirmó sin cambios (AgendaPro). Todas las correcciones fueron aplicadas con la decisión **Ajustar** antes de dar por cerrada la etapa.
 
+### Revisión complementaria automatizada (2026-10-08)
+
+Al completar la sección A.2, el agente de IA (sesión conducida por Mateo Algañaraz) descargó el 2026-10-08 el texto público de las 15 URLs de la tabla A para buscar evidencia de adopción. **No reemplaza la verificación personal**: lo encontrado debe confirmarlo un integrante abriendo la URL antes de la entrega.
+
+| Fuente | Qué afirmaba el informe | Qué mostró la URL el 2026-10-08 | Resultado |
+|---|---|---|---|
+| [Dental-IA](https://www.dentalia.com.ar/) | Precios: No evidenciado | Planes con montos publicados ($125.000 y $195.000 ARS/mes) y prueba de 15 días | **Corregida** en A y B (precio 2 → 4). Pendiente de confirmación personal. |
+| [DentalQub](https://dentalqub.cl/) | Precio desde 0,67 UF/mes y prueba de 7 días | Starter 0,67 UF/mes con facturación anual; prueba de 7 días sin tarjeta | Confirmada sin cambios. |
+| DentalSoft, AgendaPro, Simples Dental, Clinicorp, Hi Órbita, Odontosys y Dentios (URLs de la tabla A) | Adopción: no relevada | Cifras de clientes y/o testimonios publicados | Incorporados en A.2 como afirmación comercial. |
+
 ## Referencias completas
 
-Todas las referencias fueron consultadas el **2026-10-01**. Se privilegian fuentes primarias.
+Todas las referencias fueron consultadas el **2026-10-01**; la evidencia de adopción de la sección A.2 y la revisión complementaria se consultaron el **2026-10-08**. Se privilegian fuentes primarias.
 
 1. Dentalink. “Software de agenda odontológica para gestionar turnos online, Argentina”. https://www.softwaredentalink.com/ar/atrae-mas-pacientes/agendamiento-online
 2. Dentalink. “Software para dentistas, México”. https://web-mx.softwaredentalink.com/
