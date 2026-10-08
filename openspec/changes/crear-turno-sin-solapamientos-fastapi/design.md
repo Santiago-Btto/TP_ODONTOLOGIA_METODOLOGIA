@@ -55,7 +55,7 @@ Alternativa considerada: sólo `SELECT ... FOR UPDATE` antes de insertar. Descar
 
 ### Transacción y traducción de errores
 
-`CrearTurno.ejecutar` abre la unidad de trabajo, busca los cuatro recursos (`RecursoInexistenteError` si falta alguno), construye el candidato, consulta turnos activos que se solapen por profesional y por box, llama a `verificar_disponibilidad`, agrega turno e historial y hace `commit`. Si el `commit` viola una restricción de exclusión (carrera entre dos requests), la unidad de trabajo traduce `IntegrityError` según el nombre de la restricción a `ConflictoProfesionalError` o `ConflictoBoxError` y hace rollback. Ante cualquier error, nada queda persistido.
+`CrearTurno.ejecutar` abre la unidad de trabajo, busca los cuatro recursos (`RecursoInexistenteError` si falta alguno), construye el candidato, consulta turnos activos que se solapen por profesional y por box, llama a `verificar_disponibilidad`, agrega turno e historial y hace `commit`. Si la escritura del turno (flush previo al historial, o el `commit`) viola una restricción de exclusión (carrera entre dos requests), la unidad de trabajo traduce `IntegrityError` según el nombre de la restricción a `ConflictoProfesionalError` o `ConflictoBoxError` y hace rollback. Ante cualquier error, nada queda persistido.
 
 ### Mapeo HTTP
 
