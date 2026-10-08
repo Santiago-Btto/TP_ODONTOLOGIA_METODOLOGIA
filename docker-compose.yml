@@ -1,0 +1,32 @@
+# Entorno de desarrollo local. Las credenciales son ficticias y sólo válidas en este compose.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: turnos
+      POSTGRES_PASSWORD: turnos
+      POSTGRES_DB: turnos
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./backend/scripts/crear-base-test.sql:/docker-entrypoint-initdb.d/01-crear-base-test.sql:ro
+      - datos-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnos -d turnos"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://turnos:turnos@db:5432/turnos
+      TEST_DATABASE_URL: postgresql+psycopg://turnos:turnos@db:5432/turnos_test
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  datos-postgres:
