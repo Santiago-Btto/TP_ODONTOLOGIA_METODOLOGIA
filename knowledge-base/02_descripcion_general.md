@@ -13,9 +13,9 @@
 | ORM | SQLAlchemy | 2.0 (API tipada `Mapped[...]`) |
 | Persistencia | PostgreSQL | 17; extensión `btree_gist` para restricciones de exclusión |
 | Autenticación | JWT (OAuth2 password flow + bearer token) | Se incorpora en C-08; nunca con secretos versionados |
-| Tareas asincrónicas | Redis | Cola/broker para recordatorios y tareas diferidas (C-10); el alta de turnos no lo necesita |
+| Tareas asincrónicas | Redis | Cola/broker para recordatorios y tareas diferidas (C-16 simulado, C-10 WhatsApp); el alta de turnos no lo necesita |
 | Pruebas | pytest + httpx (`TestClient`) | Contra PostgreSQL real, sin cuentas externas |
-| Contenedores | Docker / Docker Compose | `db` (PostgreSQL) y `api` (FastAPI) desde C-01; `redis` se agrega con C-10 |
+| Contenedores | Docker / Docker Compose | `db` (PostgreSQL) y `api` (FastAPI) desde C-01b; `redis` se agrega con C-16 |
 
 ### Frontend
 
@@ -33,7 +33,7 @@ El dominio sigue siendo la autoridad de disponibilidad. Los canales (API, fronte
 Frontend React + TS + Vite (C-15)
           |
           v  HTTP/JSON (JWT desde C-08)
-API FastAPI  ----------------->  Redis (tareas asincrónicas, C-10)
+API FastAPI  ----------------->  Redis (tareas asincrónicas, C-16)
           |
           v
 Casos de uso (aplicación)

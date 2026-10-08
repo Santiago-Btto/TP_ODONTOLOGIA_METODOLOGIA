@@ -4,6 +4,8 @@
 > Cada change es atómico: un agente puede implementarlo en una sesión (~4-6 horas).
 > **Leer este archivo antes de ejecutar cualquier `/opsx:propose`.**
 
+> **Ajustar (2026-10-08).** El roadmap original asumía Node.js + TypeScript en memoria y difería la persistencia, la API y la autenticación a fases posteriores. Se corrigió para (1) adoptar el stack definido (FastAPI, SQLAlchemy, PostgreSQL, JWT, Redis, Docker Compose; React + TypeScript + Vite), (2) incorporar al MVP los ítems imprescindibles de la sección D del Discovery que no tenían change —datos mínimos de paciente (C-17) y recordatorio simulado (C-16)— y (3) corregir el camino crítico, que incluía a C-05 aunque éste sólo depende del primer change.
+
 ---
 
 ## Cómo usar este documento
@@ -19,328 +21,211 @@
 ## Árbol de dependencias
 
 ```text
-C-01 crear-turno-sin-solapamientos             ← primer change MVP
-  ├── C-02 consultar-agenda
-  ├── C-03 bloquear-disponibilidad
-  │     └── C-04 reprogramar-turno-atomicamente
-  ├── C-05 cancelar-y-confirmar-turnos
-  └── C-06 ejecutar-flujo-mvp-local
-        └── C-07 persistir-agenda-y-controlar-concurrencia
-              ├── C-08 autenticar-y-autorizar-adaptadores
-              │     ├── C-09 exponer-api-de-agenda
-              │     │     ├── C-10 recordatorios-con-consentimiento
-              │     │     ├── C-11 cobros-y-senas-integrados
-              │     │     └── C-12 sincronizar-calendario-externo
-              │     └── C-13 historia-clinica-y-odontograma
-              └── C-14 auditoria-operativa-y-observabilidad
+C-01  crear-turno-sin-solapamientos               ← archivado (stack anterior, Node.js)
+  └── C-01b crear-turno-sin-solapamientos-fastapi ← reimplementación en el stack definido
+        ├── C-02 consultar-agenda
+        │     └── C-15 agenda-web-react  (también requiere C-08 y C-17)
+        ├── C-03 bloquear-disponibilidad
+        │     └── C-04 reprogramar-turno-atomicamente
+        ├── C-05 cancelar-y-confirmar-turnos
+        ├── C-08 autenticar-con-jwt
+        ├── C-16 recordatorio-simulado-con-redis
+        ├── C-17 registrar-paciente-minimo
+        └── C-06 flujo-mvp-docker-compose   (requiere C-02, C-04, C-05, C-15, C-16, C-17)
+              └── C-07 migraciones-y-respaldo
+                    ├── C-14 auditoria-operativa-y-observabilidad
+                    └── C-09 endurecer-api-publicable
+                          ├── C-10 recordatorios-whatsapp-con-consentimiento
+                          ├── C-11 cobros-y-senas-integrados
+                          ├── C-12 sincronizar-calendario-externo
+                          └── C-13 historia-clinica-y-odontograma
 ```
 
 ### Paralelismo por fase
 
-> Cada gate marca una sincronización: los changes mostrados debajo pueden proponerse y ejecutarse en paralelo una vez archivadas sus dependencias.
-
 ```text
-GATE 0: ninguna
-  → C-01 crear-turno-sin-solapamientos         [Agente A]
+GATE 0: C-01 ✓ (archivado)
+  → C-01b crear-turno-sin-solapamientos-fastapi          [Agente A]
 
-GATE 1: C-01 ✓                                 ← FORK
-  → C-02 consultar-agenda                       [Agente B]
-  → C-03 bloquear-disponibilidad                [Agente A]
-  → C-05 cancelar-y-confirmar-turnos            [Agente C]
+GATE 1: C-01b ✓                                          ← FORK
+  → C-02 consultar-agenda                                [Agente B]
+  → C-03 bloquear-disponibilidad                         [Agente A]
+  → C-05 cancelar-y-confirmar-turnos                     [Agente B]
+  → C-08 autenticar-con-jwt                              [Agente C]
+  → C-16 recordatorio-simulado-con-redis                 [Agente C]
+  → C-17 registrar-paciente-minimo                       [Agente B]
 
-GATE 2: C-01 + C-03 ✓
-  → C-04 reprogramar-turno-atomicamente         [Agente A]
+GATE 2: C-03 ✓
+  → C-04 reprogramar-turno-atomicamente                  [Agente A]
 
-GATE 3: C-02 + C-03 + C-04 + C-05 ✓
-  → C-06 ejecutar-flujo-mvp-local               [Agente B]
+GATE 3: C-02 + C-08 + C-17 ✓
+  → C-15 agenda-web-react                                [Agente C]
 
-GATE 4: C-06 ✓
-  → C-07 persistir-agenda-y-controlar-concurrencia [Agente A]
+GATE 4: C-02 + C-04 + C-05 + C-15 + C-16 + C-17 ✓
+  → C-06 flujo-mvp-docker-compose                        [Agente A]   ← MVP completo
 
-GATE 5: C-07 ✓                                 ← FORK, sujeto a decisiones abiertas
-  → C-08 autenticar-y-autorizar-adaptadores     [Agente A]
-  → C-14 auditoria-operativa-y-observabilidad   [Agente B]
+GATE 5: C-06 ✓
+  → C-07 migraciones-y-respaldo                          [Agente A]
 
-GATE 6: C-08 ✓                                 ← FORK; C-09 también requiere C-07
-  → C-09 exponer-api-de-agenda                  [Agente C]
-  → C-13 historia-clinica-y-odontograma         [Agente B]
+GATE 6: C-07 ✓
+  → C-09 endurecer-api-publicable                        [Agente A]
+  → C-14 auditoria-operativa-y-observabilidad            [Agente B]
 
-GATE 7: C-09 ✓                                 ← FORK; integraciones no son fuente de verdad
-  → C-10 recordatorios-con-consentimiento       [Agente B]
-  → C-11 cobros-y-senas-integrados              [Agente A]
-  → C-12 sincronizar-calendario-externo         [Agente C]
+GATE 7: C-09 ✓                                           ← integraciones, no son fuente de verdad
+  → C-10, C-11, C-12, C-13                               [según disponibilidad]
 ```
 
-### Camino crítico (6 changes — mínimo irreducible)
+### Camino crítico del MVP (4 changes)
 
 ```text
-C-01 → C-03 → C-04 → C-05 → C-06
+C-01b → C-08 → C-15 → C-06
 ```
 
-El MVP ejecutable queda listo tras C-06; C-02 se implementa en paralelo y es requisito de completitud del MVP, aunque no alarga la cadena de dependencias. Los changes C-07 a C-14 son evolución posterior y no deben desplazar el núcleo de agenda.
+Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 → C-15 → C-06`, por lo que cualquier demora en C-02, C-03, C-04, C-08 o C-15 retrasa el MVP. C-05, C-16 y C-17 tienen holgura. Los changes C-07 en adelante son evolución posterior y no deben desplazar el núcleo de agenda.
 
-### Plan óptimo con 3 agentes
+### Plan con 3 agentes
 
-| Paso | Agente A (Backend Core) | Agente B (Backend Aux) | Agente C (Frontend) |
+| Paso | Agente A (Backend core) | Agente B (Backend aux) | Agente C (Plataforma / Frontend) |
 |---|---|---|---|
-| 1 | C-01 crear-turno-sin-solapamientos | — | — |
-| 2 | C-03 bloquear-disponibilidad | C-02 consultar-agenda | C-05 cancelar-y-confirmar-turnos |
-| 3 | C-04 reprogramar-turno-atomicamente | — | — |
-| 4 | — | C-06 ejecutar-flujo-mvp-local | — |
-| 5 | C-07 persistir-agenda-y-controlar-concurrencia | — | — |
-| 6 | C-08 autenticar-y-autorizar-adaptadores | C-14 auditoria-operativa-y-observabilidad | — |
-| 7 | — | C-13 historia-clinica-y-odontograma | C-09 exponer-api-de-agenda |
-| 8 | C-11 cobros-y-senas-integrados | C-10 recordatorios-con-consentimiento | C-12 sincronizar-calendario-externo |
+| 1 | C-01b crear-turno-sin-solapamientos-fastapi | — | — |
+| 2 | C-03 bloquear-disponibilidad | C-02 consultar-agenda | C-08 autenticar-con-jwt |
+| 3 | C-04 reprogramar-turno-atomicamente | C-05 cancelar-y-confirmar / C-17 registrar-paciente-minimo | C-16 recordatorio-simulado-con-redis |
+| 4 | — | — | C-15 agenda-web-react |
+| 5 | C-06 flujo-mvp-docker-compose | — | — |
 
 ---
 
-## FASE 0 — Núcleo determinista del MVP
+## FASE 0 — Núcleo de agenda en el stack definido
 
 ### [C-01] `crear-turno-sin-solapamientos`
-- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-10-01-crear-turno-sin-solapamientos/`
-- **Scope**: Entregar el primer vertical slice del MVP como módulo Node.js/TypeScript, sin UI, HTTP, cuentas externas ni dependencias de terceros.
-  - Configurar `package.json`, `tsconfig.json`, scripts de compilación y `node:test`; crear la estructura `src/domain`, `src/application`, `src/infrastructure/in-memory` y `test/`.
-  - Modelos: `Paciente`, `Profesional`, `Box`, `Prestacion`, `Turno`, `HistorialDeCambio` y `EstadoTurno`; rechazar duraciones no positivas, recursos ausentes y datos de prueba no ficticios.
-  - Implementar repositorios en memoria y el servicio puro de disponibilidad con la intersección semiabierta `[inicio, fin)`, para admitir turnos contiguos.
-  - Caso de uso `CrearTurno`: calcular `fin` desde la prestación o validar el fin recibido, reservar simultáneamente profesional y box y persistir el historial `creado` sólo tras validar ambos recursos.
-  - Tests TDD: alta válida, conflicto por profesional, conflicto por box, turnos contiguos, intervalo inválido y duración inválida; comprobar que un rechazo no deja reservas ni historial parcial.
+- **Estado**: `[x]` archivado en `openspec/changes/archive/2026-10-01-crear-turno-sin-solapamientos/` con el stack anterior (Node.js + TypeScript en memoria). Su código fue reemplazado por C-01b; el comportamiento especificado se conserva.
 - **Dependencias**: ninguna
+
+### [C-01b] `crear-turno-sin-solapamientos-fastapi`
+- **Estado**: `[ ]` en curso
+- **Scope**: Reimplementar el alta de turnos en el stack definido, sin cambiar el contrato de C-01.
+  - `backend/` con FastAPI, SQLAlchemy 2.0 y pytest; `docker-compose.yml` con `db` (PostgreSQL 17) y `api`; `.env.example` sin secretos.
+  - Dominio Python puro: entidades, errores tipados e intersección semiabierta `[inicio, fin)`.
+  - Modelos SQLAlchemy de paciente, profesional, box, prestación, turno e historial; `CHECK (fin > inicio)` y `EXCLUDE USING gist` por profesional y por box.
+  - Caso de uso `CrearTurno` en una única transacción: turno + historial `creado`, o nada.
+  - `POST /api/v1/turnos` (201/404/409/422) y `GET /health`.
+  - Tests pytest por escenario del spec, incluido el rechazo de la base ante un solapamiento que elude la aplicación.
+- **Dependencias**: C-01
 - **Governance**: CRITICO
-- **Leer antes**:
-  - `knowledge-base/01_vision_y_objetivos.md` §Alcance v0.1 — MVP de dominio ejecutable
-  - `knowledge-base/02_descripcion_general.md` §Stack tecnológico y Arquitectura general
-  - `knowledge-base/04_modelo_de_datos.md` §Entidades y Seed data inicial
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DA y RN-DI
-  - `knowledge-base/08_arquitectura_propuesta.md` §Patrones aplicados
+- **Leer antes**: `knowledge-base/02_descripcion_general.md`, `04_modelo_de_datos.md` §Turno, `05_reglas_de_negocio.md` §RN-DA y RN-DI, `08_arquitectura_propuesta.md`, `09_decisiones_y_supuestos.md` §DD-02
 
 ---
 
-## FASE 1 — Operación local de la agenda
+## FASE 1 — MVP (sección D del Discovery)
 
 ### [C-02] `consultar-agenda`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Incorporar consulta determinista de agenda sobre el núcleo en memoria.
-  - Caso de uso `ConsultarAgenda` con filtros obligatorios de rango y filtros opcionales por `profesionalId` y `boxId`.
-  - Definir DTO de salida que identifique turno, profesional, box, prestación, intervalo y estado, sin presentar UI ni exponer datos personales reales.
-  - Ordenar resultados por inicio y documentar el criterio de inclusión de intervalos que intersectan el rango consultado.
-  - Tests: agenda diaria por profesional, agenda semanal por box, filtro combinado, rango vacío y exclusión de datos que no intersectan.
-- **Dependencias**: C-01
+- **Scope**: Caso de uso `ConsultarAgenda` y `GET /api/v1/agenda` con rango obligatorio y filtros opcionales `profesional_id` / `box_id`; resultados ordenados por inicio; inclusión por intersección con el rango. Tests: agenda diaria por profesional, semanal por box, filtro combinado, rango vacío y exclusión de turnos que no intersectan.
+- **Dependencias**: C-01b
 - **Governance**: BAJO
-- **Leer antes**:
-  - `knowledge-base/01_vision_y_objetivos.md` §Alcance v0.1
-  - `knowledge-base/04_modelo_de_datos.md` §Turno
-  - `knowledge-base/06_funcionalidades.md` §US-002 — Consultar agenda
-  - `knowledge-base/07_flujos_principales.md` §Flujo 1
+- **Leer antes**: `04_modelo_de_datos.md` §Turno, `06_funcionalidades.md` §US-002, `07_flujos_principales.md` §Flujo 1
 
 ### [C-03] `bloquear-disponibilidad`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Añadir bloqueos de profesional o box que participen de la misma validación de disponibilidad.
-  - Modelo y repositorio en memoria `BloqueoDeDisponibilidad` con `recursoTipo`, `recursoId`, intervalo válido y motivo opcional.
-  - Caso de uso `BloquearDisponibilidad` que valide recurso e intervalo y persista el bloqueo sin reinterpretar los turnos existentes.
-  - Extender el servicio de disponibilidad para rechazar altas y reprogramaciones que intersecten un bloqueo de cualquiera de los dos recursos.
-  - Definir error explícito para el caso pendiente de bloqueo que se solapa con un turno existente; no inventar política de resolución.
-  - Tests: bloqueo de profesional, bloqueo de box, bordes contiguos válidos, alta/reprogramación rechazada por bloqueo y persistencia inalterada ante un bloqueo inválido.
-- **Dependencias**: C-01
+- **Scope**: Tabla y repositorio `bloqueo_disponibilidad` (recurso profesional o box, intervalo válido, motivo opcional); `POST /api/v1/bloqueos`; la disponibilidad rechaza altas y reprogramaciones que intersecten un bloqueo. Error explícito si el bloqueo se solapa con un turno existente, sin inventar política. Tests: bloqueo de profesional, de box, bordes contiguos y alta rechazada por bloqueo.
+- **Dependencias**: C-01b
 - **Governance**: MEDIO
-- **Leer antes**:
-  - `knowledge-base/04_modelo_de_datos.md` §BloqueoDeDisponibilidad
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DA-02 y RN-DI-04
-  - `knowledge-base/06_funcionalidades.md` §US-003 — Bloquear disponibilidad
-  - `knowledge-base/07_flujos_principales.md` §Flujo 4
-  - `knowledge-base/10_preguntas_abiertas.md` §Preguntas abiertas (Media)
+- **Leer antes**: `05_reglas_de_negocio.md` §RN-DA-02 y RN-DI-04, `06_funcionalidades.md` §US-003, `10_preguntas_abiertas.md` (Media)
 
 ### [C-04] `reprogramar-turno-atomicamente`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Implementar cambio de horario y/o recursos como operación atómica.
-  - Caso de uso `ReprogramarTurno` que recupere el turno, construya el candidato y lo excluya de su propia comparación.
-  - Validar el candidato contra turnos activos y bloqueos del profesional y box nuevos antes de modificar cualquier repositorio.
-  - Reemplazar intervalo, profesional o box sólo si pasa la validación; registrar `HistorialDeCambio` con resúmenes antes y después.
-  - Devolver errores de turno inexistente y turno cancelado como comportamiento explícito, dejando señalada la política pendiente cuando corresponda.
-  - Tests: cambio válido, conflicto por profesional, conflicto por box, bloqueo, autoexclusión, y fallo atómico que conserva el turno e historial previos.
-- **Dependencias**: C-01, C-03
+- **Scope**: `ReprogramarTurno` y `PATCH /api/v1/turnos/{id}`: excluir el propio turno de la comparación, validar contra turnos y bloqueos, actualizar e insertar historial `reprogramado` en la misma transacción. Tests: cambio válido, conflictos por profesional/box/bloqueo, autoexclusión y fallo atómico.
+- **Dependencias**: C-01b, C-03
 - **Governance**: MEDIO
-- **Leer antes**:
-  - `knowledge-base/04_modelo_de_datos.md` §Turno y HistorialDeCambio
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DI-02 a RN-DI-04 y RN-TU-02
-  - `knowledge-base/06_funcionalidades.md` §US-004 — Reprogramar un turno
-  - `knowledge-base/07_flujos_principales.md` §Flujo 2
-  - `knowledge-base/10_preguntas_abiertas.md` §Preguntas abiertas (Media)
+- **Leer antes**: `05_reglas_de_negocio.md` §RN-DI-02 a RN-DI-04 y RN-TU-02, `06_funcionalidades.md` §US-004
 
 ### [C-05] `cancelar-y-confirmar-turnos`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Completar los cambios básicos de estado sin ampliar la política de autorización.
-  - Casos de uso `CancelarTurno` y `ConfirmarTurno` con transiciones explícitas para los estados acordados del MVP.
-  - Hacer que la disponibilidad ignore un turno cancelado, conservando el turno y agregando historial `cancelado` o `confirmado`.
-  - Mantener la confirmación como cambio de estado; cualquier cambio simultáneo de horario o recurso debe delegar en la validación de reprogramación.
-  - Exponer errores para turno inexistente y transición no permitida, sin asumir ventana de cancelación ni actor autorizado.
-  - Tests: cancelar libera el intervalo, confirmar conserva la reserva, ambos eventos escriben historial y las transiciones inválidas no alteran estado.
-- **Dependencias**: C-01
+- **Scope**: `CancelarTurno` / `ConfirmarTurno` y sus endpoints; un turno cancelado deja de participar de la restricción de exclusión (`WHERE estado <> 'cancelado'`) y de la validación; historial `cancelado` / `confirmado`. Tests: cancelar libera el intervalo, confirmar conserva la reserva, transiciones inválidas no alteran estado.
+- **Dependencias**: C-01b
 - **Governance**: MEDIO
-- **Leer antes**:
-  - `knowledge-base/04_modelo_de_datos.md` §Turno y HistorialDeCambio
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-TU
-  - `knowledge-base/06_funcionalidades.md` §US-005 — Cancelar y confirmar
-  - `knowledge-base/07_flujos_principales.md` §Flujo 3
-  - `knowledge-base/10_preguntas_abiertas.md` §Quién puede cancelar o confirmar
+- **Leer antes**: `05_reglas_de_negocio.md` §RN-TU, `06_funcionalidades.md` §US-005, `10_preguntas_abiertas.md`
 
-### [C-06] `ejecutar-flujo-mvp-local`
+### [C-08] `autenticar-con-jwt`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Ensamblar el MVP local verificable sin añadir UI ni integración externa.
-  - Crear composición en `src/index.ts` y un adaptador de línea de comandos mínimo para ejecutar comandos ficticios de crear, consultar, bloquear, reprogramar, cancelar y confirmar.
-  - Inyectar repositorios en memoria y exponer contratos de casos de uso sin duplicar reglas de disponibilidad en el adaptador.
-  - Incorporar fixtures reproducibles con pacientes, profesionales, boxes y prestaciones manifiestamente ficticios.
-  - Añadir prueba de aceptación de flujo E2E local: alta, consulta, bloqueo, rechazo por conflicto, reprogramación, cancelación y reutilización del horario.
-  - Documentar comandos locales, versión LTS de Node fijada y la garantía de no requerir `.env`, UI, API ni cuentas externas.
-- **Dependencias**: C-02, C-03, C-04, C-05
+- **Scope**: Usuarios y roles (recepción, odontólogo/a, responsable) con contraseñas hasheadas; `POST /api/v1/auth/token` (OAuth2 password flow) que emite JWT firmado con `JWT_SECRET` de entorno; dependencia FastAPI que protege todas las rutas `/api/v1`; actor trazable en el historial. Tests: token válido, expirado, firma inválida, acceso denegado por rol. Ningún secreto versionado.
+- **Dependencias**: C-01b
+- **Governance**: CRITICO
+- **Leer antes**: `03_actores_y_roles.md` §RBAC, `08_arquitectura_propuesta.md` §Seguridad, `10_preguntas_abiertas.md` §Quién puede operar
+
+### [C-16] `recordatorio-simulado-con-redis`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Recordatorio manual o simulado exigido por la sección D: al crear/confirmar un turno se encola en Redis una tarea de recordatorio; un worker la procesa con un `NotificadorSimulado` que sólo registra el envío (sin WhatsApp real). Servicio `redis` en Docker Compose y `REDIS_URL`. Tests: encolado tras commit, idempotencia, turno cancelado no notifica, la agenda funciona con Redis caído.
+- **Dependencias**: C-01b
+- **Governance**: MEDIO
+- **Leer antes**: `02_descripcion_general.md` §Integraciones, `05_reglas_de_negocio.md` §RN-EX-02
+
+### [C-17] `registrar-paciente-minimo`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Datos mínimos de paciente exigidos por la sección D: alta y búsqueda (`POST/GET /api/v1/pacientes`) con nombre mostrado y contacto opcional; sin datos clínicos; seeds y tests exclusivamente ficticios. Tests: alta válida, duplicado, búsqueda y rechazo de campos no permitidos.
+- **Dependencias**: C-01b
+- **Governance**: ALTO (datos personales)
+- **Leer antes**: `04_modelo_de_datos.md` §Paciente, `09_decisiones_y_supuestos.md` §DD-04, `10_preguntas_abiertas.md` §Datos mínimos
+
+### [C-15] `agenda-web-react`
+- **Estado**: `[ ]` pendiente
+- **Scope**: `frontend/` con React + TypeScript (`strict`) + Vite: login contra C-08, vista diaria/semanal por profesional y box (C-02) y formulario de alta que muestra la causa del rechazo (409/422). La UI no recalcula disponibilidad. Servicio `frontend` en Docker Compose. Tests de componentes y de cliente API.
+- **Dependencias**: C-02, C-08, C-17
+- **Governance**: MEDIO
+- **Leer antes**: `01_vision_y_objetivos.md`, `06_funcionalidades.md`, `07_flujos_principales.md`; referencias UX del Discovery (Simples Dental, Dentios, DentalQub)
+
+### [C-06] `flujo-mvp-docker-compose`
+- **Estado**: `[ ]` pendiente
+- **Scope**: `docker compose up` levanta db, redis, api y frontend con seeds ficticios; prueba E2E por API: login, alta de paciente, alta de turno, consulta, bloqueo, rechazo por conflicto, reprogramación, cancelación, reutilización del horario y recordatorio simulado registrado. Documentación de arranque.
+- **Dependencias**: C-02, C-04, C-05, C-15, C-16, C-17
 - **Governance**: BAJO
-- **Leer antes**:
-  - `knowledge-base/01_vision_y_objetivos.md` §Métricas de éxito y Fuera de alcance
-  - `knowledge-base/02_descripcion_general.md` §Arquitectura general
-  - `knowledge-base/07_flujos_principales.md` §Flujos 1 a 4
-  - `knowledge-base/08_arquitectura_propuesta.md` §Estructura de directorios y Seguridad
-  - `knowledge-base/09_decisiones_y_supuestos.md` §DD-02 y DD-04
 
 ---
 
-## FASE 2 — Evolución segura antes de exponer canales
+## FASE 2 — Evolución posterior al MVP
 
-### [C-07] `persistir-agenda-y-controlar-concurrencia`
+### [C-07] `migraciones-y-respaldo`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Sustituir la persistencia en memoria sólo tras definir escala y privacidad, manteniendo la autoridad del dominio.
-  - Acordar y versionar decisión de clínica/sucursal, esquema de datos mínimos ficticios o política aprobada para datos reales, retención y exportación.
-  - Implementar adaptadores de repositorio persistente y migraciones para agenda, bloqueos e historial, sin modificar los contratos de casos de uso.
-  - Garantizar exclusión de concurrencia para profesional y box mediante transacciones y restricciones compatibles con el motor seleccionado.
-  - Diseñar migración y respaldo reversible; verificar que una falla no genere doble reserva ni historial parcial.
-  - Tests de integración: dos altas concurrentes al mismo recurso, reinicio/persistencia, aislamiento definido y rollback ante conflicto.
+- **Scope**: Migraciones versionadas (Alembic), respaldo y restauración de PostgreSQL, pruebas de concurrencia con dos sesiones simultáneas sobre el mismo recurso. Decisión sobre clínica/sucursal, retención y exportación.
 - **Dependencias**: C-06
 - **Governance**: ALTO
-- **Leer antes**:
-  - `knowledge-base/02_descripcion_general.md` §Persistencia
-  - `knowledge-base/04_modelo_de_datos.md` §Entidades e Índice lógico
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DI-01 a RN-DI-05
-  - `knowledge-base/09_decisiones_y_supuestos.md` §SU-02
-  - `knowledge-base/10_preguntas_abiertas.md` §Prioridad Alta
-
-### [C-08] `autenticar-y-autorizar-adaptadores`
-- **Estado**: `[ ]` pendiente
-- **Scope**: Incorporar identidad y autorización a adaptadores futuros sólo después de validar la matriz operativa.
-  - Validar quién puede crear, reprogramar, cancelar, confirmar, bloquear y consultar antes de codificar una política de permisos.
-  - Modelos y almacenamiento: `Usuario`, `Rol`, asignaciones y sesiones/credenciales según el mecanismo elegido, sin secretos embebidos.
-  - Implementar middleware o puerto de identidad para que los adaptadores soliciten autorización y los casos de uso reciban actor trazable.
-  - Ampliar `HistorialDeCambio.actorId` sólo bajo la política de datos aprobada.
-  - Tests: permisos por rol, acceso denegado, revocación de sesión y trazabilidad del actor sin filtrar datos sensibles.
-- **Dependencias**: C-07
-- **Governance**: CRITICO
-- **Leer antes**:
-  - `knowledge-base/03_actores_y_roles.md` §RBAC — Matriz de permisos propuesta
-  - `knowledge-base/04_modelo_de_datos.md` §HistorialDeCambio
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-TU y RN-EX-03
-  - `knowledge-base/08_arquitectura_propuesta.md` §Seguridad
-  - `knowledge-base/10_preguntas_abiertas.md` §Quién puede operar y privacidad
 
 ### [C-14] `auditoria-operativa-y-observabilidad`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Preparar trazabilidad y operación de producción sin convertir los logs en una historia clínica paralela.
-  - Definir eventos de auditoría mínimos para cambios de agenda, bloqueos y accesos, con correlación y actor autorizado.
-  - Implementar logs estructurados, métricas de conflicto y alertas de errores de disponibilidad sin incluir PII ni contenido clínico.
-  - Establecer retención, acceso y exportación de auditoría conforme a la política aprobada; separar historial funcional de telemetría.
-  - Crear runbook de restauración, incidentes de doble reserva y revisión de accesos.
-  - Tests: redacción de datos sensibles, correlación de un cambio y ausencia de duplicación de eventos ante reintentos.
+- **Scope**: Eventos de auditoría, logs estructurados sin PII, métricas de conflictos, runbook de doble reserva y retención de auditoría.
 - **Dependencias**: C-07
 - **Governance**: CRITICO
-- **Leer antes**:
-  - `knowledge-base/01_vision_y_objetivos.md` §Métricas de éxito
-  - `knowledge-base/04_modelo_de_datos.md` §HistorialDeCambio
-  - `knowledge-base/08_arquitectura_propuesta.md` §Seguridad
-  - `knowledge-base/09_decisiones_y_supuestos.md` §DD-04
-  - `knowledge-base/10_preguntas_abiertas.md` §Retención y exportación
+
+### [C-09] `endurecer-api-publicable`
+- **Estado**: `[ ]` pendiente
+- **Scope**: Contrato OpenAPI versionado, rate limiting, CORS, idempotencia de comandos, redacción de datos por rol y pruebas de contrato antes de exponer la API fuera de la red de la clínica.
+- **Dependencias**: C-07, C-08
+- **Governance**: ALTO
 
 ---
 
-## FASE 3 — Canales e integraciones posteriores al MVP
+## FASE 3 — Integraciones y clínica (etapas posteriores del Discovery)
 
-### [C-09] `exponer-api-de-agenda`
+### [C-10] `recordatorios-whatsapp-con-consentimiento`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Publicar un adaptador HTTP versionado que delegue exclusivamente en los casos de uso existentes.
-  - Definir contrato OpenAPI y endpoints autenticados para turnos, agenda y bloqueos; no exponer una ruta pública de reserva sin diseño específico.
-  - Mapear validaciones y errores de dominio a respuestas consistentes sin recalcular disponibilidad en controladores.
-  - Aplicar autorización, rate limiting, validación de entrada y redacción de datos según el rol.
-  - Crear pruebas de contrato, integración de autorización y regresión de conflictos de profesional/box a través del adaptador.
-  - Documentar versionado, idempotencia de comandos y estrategia de errores/reintentos.
-- **Dependencias**: C-07, C-08
+- **Scope**: Reemplazar el `NotificadorSimulado` de C-16 por un adaptador de WhatsApp Business con consentimiento, opt-out y reintentos sobre la cola Redis existente. Los mensajes nunca crean ni cambian turnos directamente.
+- **Dependencias**: C-09, C-16
 - **Governance**: ALTO
-- **Leer antes**:
-  - `knowledge-base/02_descripcion_general.md` §API REST
-  - `knowledge-base/03_actores_y_roles.md` §Rutas públicas
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DI-05 y RN-EX-02
-  - `knowledge-base/08_arquitectura_propuesta.md` §Seguridad
-  - `knowledge-base/09_decisiones_y_supuestos.md` §DD-03
-
-### [C-10] `recordatorios-con-consentimiento`
-- **Estado**: `[ ]` pendiente
-- **Scope**: Agregar recordatorios como adaptador saliente, no como fuente de verdad de la agenda.
-  - Definir canal, consentimiento, contenido, opt-out y retención antes de incorporar credenciales de mensajería.
-  - Crear puerto `NotificadorDeTurnos`, cola/reintentos idempotentes y adaptador de proveedor aislado por configuración segura.
-  - Emitir solicitudes de notificación sólo después de una transición persistida; los mensajes nunca crean ni cambian turnos directamente.
-  - Registrar estado técnico mínimo de entrega sin incluir información clínica ni secretos.
-  - Tests: consentimiento ausente, idempotencia, reintento, fallo del proveedor y operación de agenda independiente del proveedor.
-- **Dependencias**: C-07, C-08, C-09
-- **Governance**: ALTO
-- **Leer antes**:
-  - `knowledge-base/02_descripcion_general.md` §Integraciones externas
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-EX-02 y RN-EX-03
-  - `knowledge-base/08_arquitectura_propuesta.md` §Variables de entorno y Seguridad
-  - `knowledge-base/10_preguntas_abiertas.md` §Canal de recordatorio y consentimiento
 
 ### [C-11] `cobros-y-senas-integrados`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Diseñar y conectar señas/pagos sólo con reglas financieras y legales aprobadas.
-  - Acordar importes, reintegros, ventana de cancelación, conciliación y efectos de un pago fallido antes de escribir flujo de cobro.
-  - Crear agregado/puerto de pago, estados de seña y webhooks autenticados con verificación de firma e idempotencia.
-  - Mantener la disponibilidad y el ciclo de vida de turno en el dominio; un webhook sólo solicita una transición definida y auditada.
-  - Gestionar secretos mediante proveedor seguro y separar tokens/identificadores de datos de pacientes.
-  - Tests: firma inválida, webhook duplicado, pago rechazado, reintegro y conservación de la agenda ante falla del proveedor.
-- **Dependencias**: C-07, C-08, C-09
+- **Scope**: Seña con Mercado Pago, webhooks firmados e idempotentes procesados vía Redis, estado de pago separado del estado del turno. Requiere reglas financieras aprobadas.
+- **Dependencias**: C-09
 - **Governance**: CRITICO
-- **Leer antes**:
-  - `knowledge-base/02_descripcion_general.md` §Mercado Pago
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-EX-03
-  - `knowledge-base/08_arquitectura_propuesta.md` §Variables de entorno
-  - `knowledge-base/10_preguntas_abiertas.md` §Señas y reintegros
 
 ### [C-12] `sincronizar-calendario-externo`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Añadir sincronización externa subordinada al dominio de agenda.
-  - Acordar dirección de sincronización, propiedad de eventos y resolución de conflictos antes de conectar un proveedor.
-  - Crear puerto de calendario, mapeo de eventos y cola idempotente para altas, cambios y cancelaciones confirmadas localmente.
-  - Guardar credenciales cifradas o delegadas a un gestor de secretos; nunca en repositorio ni en fixtures.
-  - Reconciliar fallas sin aceptar cambios externos que el dominio no haya validado para profesional y box.
-  - Tests: evento duplicado, conflicto externo, fallo de red, cancelación y no creación de solapamientos desde el adaptador.
-- **Dependencias**: C-07, C-08, C-09
+- **Scope**: Sincronización con Google Calendar subordinada al dominio; credenciales fuera del repositorio; conflictos externos nunca generan solapamientos.
+- **Dependencias**: C-09
 - **Governance**: ALTO
-- **Leer antes**:
-  - `knowledge-base/02_descripcion_general.md` §Google Calendar
-  - `knowledge-base/05_reglas_de_negocio.md` §RN-DI-05 y RN-EX-02
-  - `knowledge-base/08_arquitectura_propuesta.md` §Variables de entorno
-  - `knowledge-base/10_preguntas_abiertas.md` §Google Calendar y conflictos de sincronización
-
----
-
-## FASE 4 — Información clínica, sólo con marco aprobado
 
 ### [C-13] `historia-clinica-y-odontograma`
 - **Estado**: `[ ]` pendiente
-- **Scope**: Incorporar historia clínica y odontograma como dominio separado, una vez validadas obligaciones legales, seguridad y consentimiento.
-  - Definir datos clínicos mínimos, consentimiento, roles, retención, exportación, borrado y respuesta a incidentes con responsables habilitados.
-  - Modelos y migraciones: `HistoriaClinica`, entradas clínicas y estructura de odontograma con separación estricta de la agenda.
-  - Aplicar control de acceso por rol, cifrado en tránsito/en reposo según la decisión técnica, y auditoría inmutable de lectura/escritura.
-  - Vincular el paciente sólo mediante identificadores necesarios; no introducir datos reales en repositorio, pruebas o semillas.
-  - Tests de seguridad y privacidad: denegación por rol, trazabilidad, retención, redacción de logs y aislamiento entre clínicas si aplica.
-- **Dependencias**: C-07, C-08
+- **Scope**: Historia clínica y odontograma como dominio separado, sólo con marco legal, consentimiento, cifrado y auditoría aprobados.
+- **Dependencias**: C-08, C-09
 - **Governance**: CRITICO
-- **Leer antes**:
-  - `knowledge-base/01_vision_y_objetivos.md` §Fuera de alcance
-  - `knowledge-base/03_actores_y_roles.md` §Actores del sistema
-  - `knowledge-base/04_modelo_de_datos.md` §Paciente
-  - `knowledge-base/08_arquitectura_propuesta.md` §Seguridad
-  - `knowledge-base/10_preguntas_abiertas.md` §Datos de paciente, consentimiento y retención

@@ -17,7 +17,7 @@
 
 ```text
 turnos-odontologia/
-├── docker-compose.yml          # db (PostgreSQL) + api (FastAPI); redis desde C-10
+├── docker-compose.yml          # db (PostgreSQL) + api (FastAPI); redis desde C-16
 ├── backend/
 │   ├── Dockerfile
 │   ├── pyproject.toml
@@ -52,7 +52,7 @@ turnos-odontologia/
 | `DATABASE_URL` | Conexión SQLAlchemy a PostgreSQL | `postgresql+psycopg://turnos:turnos@db:5432/turnos` | Sí (fuera de desarrollo) |
 | `TEST_DATABASE_URL` | Base descartable para pytest | `postgresql+psycopg://turnos:turnos@localhost:5432/turnos_test` | No (sólo local) |
 | `JWT_SECRET` | Firma de tokens (C-08) | No definida | Sí |
-| `REDIS_URL` | Broker de tareas asincrónicas (C-10) | `redis://redis:6379/0` | No |
+| `REDIS_URL` | Broker de tareas asincrónicas (C-16) | `redis://redis:6379/0` | No |
 | `WHATSAPP_*` | Credenciales de mensajería, si se aprueba la integración | No definida | Sí |
 | `MERCADOPAGO_*` | Credenciales para señas, si se aprueban | No definida | Sí |
 | `GOOGLE_CALENDAR_*` | Credenciales de sincronización, si se aprueba | No definida | Sí |

@@ -4,22 +4,79 @@
   "owner": "active-orchestrator",
   "discovery": {
     "created_by": "discovery-research",
-    "sources": ["docs/discovery/informe-discovery.md", "docs/discovery/checklist-discovery.md"],
+    "sources": [
+      "docs/discovery/informe-discovery.md",
+      "docs/discovery/checklist-discovery.md"
+    ],
     "competitors": [
-      { "name": "Dentalink", "notes_file": "docs/discovery/informe-discovery.md" },
-      { "name": "AgendaPro", "notes_file": "docs/discovery/informe-discovery.md" },
-      { "name": "Denteo", "notes_file": "docs/discovery/informe-discovery.md" }
+      {
+        "name": "Dentalink",
+        "notes_file": "docs/discovery/informe-discovery.md"
+      },
+      {
+        "name": "AgendaPro",
+        "notes_file": "docs/discovery/informe-discovery.md"
+      },
+      {
+        "name": "Denteo",
+        "notes_file": "docs/discovery/informe-discovery.md"
+      }
     ],
     "problema": "Gestionar disponibilidad sin solapar profesionales ni boxes y mantener trazabilidad ante cambios de turnos.",
-    "usuarios": ["recepción", "odontólogo", "responsable de clínica", "paciente"],
-    "casos_de_uso": ["crear turno", "consultar agenda", "bloquear disponibilidad", "reprogramar", "cancelar", "confirmar"],
-    "funcionalidades_necesarias": ["agenda por profesional y box", "duración de prestación", "validación anti-solapamiento", "estados del turno"],
-    "funcionalidades_opcionales": ["recordatorios WhatsApp", "lista de espera", "seña", "Google Calendar", "odontograma"],
-    "reglas_de_negocio": ["un intervalo no puede intersectar otro para el mismo profesional o box", "turnos contiguos son válidos", "cancelar o reprogramar libera el intervalo"],
-    "integraciones": ["WhatsApp", "Mercado Pago", "Google Calendar"],
-    "restricciones": ["mercado argentino", "datos ficticios", "sin cuentas externas para tests", "sin datos reales de pacientes"],
-    "riesgos": ["políticas locales sin validar", "datos de salud sin políticas acordadas", "scope creep de facturación y obras sociales"],
-    "preguntas_abiertas": ["política de sobreturnos", "ventana de cancelación", "señas y reintegros", "retención y exportación de datos"]
+    "usuarios": [
+      "recepción",
+      "odontólogo",
+      "responsable de clínica",
+      "paciente"
+    ],
+    "casos_de_uso": [
+      "crear turno",
+      "consultar agenda",
+      "bloquear disponibilidad",
+      "reprogramar",
+      "cancelar",
+      "confirmar"
+    ],
+    "funcionalidades_necesarias": [
+      "agenda por profesional y box",
+      "duración de prestación",
+      "validación anti-solapamiento",
+      "estados del turno"
+    ],
+    "funcionalidades_opcionales": [
+      "recordatorios WhatsApp",
+      "lista de espera",
+      "seña",
+      "Google Calendar",
+      "odontograma"
+    ],
+    "reglas_de_negocio": [
+      "un intervalo no puede intersectar otro para el mismo profesional o box",
+      "turnos contiguos son válidos",
+      "cancelar o reprogramar libera el intervalo"
+    ],
+    "integraciones": [
+      "WhatsApp",
+      "Mercado Pago",
+      "Google Calendar"
+    ],
+    "restricciones": [
+      "mercado argentino",
+      "datos ficticios",
+      "sin cuentas externas para tests",
+      "sin datos reales de pacientes"
+    ],
+    "riesgos": [
+      "políticas locales sin validar",
+      "datos de salud sin políticas acordadas",
+      "scope creep de facturación y obras sociales"
+    ],
+    "preguntas_abiertas": [
+      "política de sobreturnos",
+      "ventana de cancelación",
+      "señas y reintegros",
+      "retención y exportación de datos"
+    ]
   },
   "kb": {
     "created_by": "kb-creator",
@@ -51,20 +108,25 @@
     "source": "CHANGES.md",
     "changes": [
       "C-01",
+      "C-01b",
       "C-02",
       "C-03",
       "C-04",
       "C-05",
+      "C-08",
+      "C-16",
+      "C-17",
+      "C-15",
       "C-06",
       "C-07",
-      "C-08",
+      "C-14",
       "C-09",
       "C-10",
       "C-11",
       "C-12",
-      "C-13",
-      "C-14"
-    ]
+      "C-13"
+    ],
+    "adjusted": "2026-10-08: stack definido, MVP alineado con la sección D (C-16, C-17, C-15) y camino crítico corregido"
   },
   "skills": {
     "recommended": [
@@ -92,12 +154,18 @@
   },
   "agents": {
     "created_by": "agents-md-generator",
-    "files": ["AGENTS.md", "CLAUDE.md"],
+    "files": [
+      "AGENTS.md",
+      "CLAUDE.md"
+    ],
     "hard_rules": [
-      "datos ficticios; sin datos reales de pacientes, secretos ni credenciales",
-      "TypeScript estricto; sin any",
-      "dominio sin dependencias de UI ni red",
-      "pruebas obligatorias con node:test y node:assert"
+      "datos ficticios; sin datos reales de pacientes",
+      "sin secretos versionados; configuración por variables de entorno",
+      "reglas de disponibilidad sólo en el dominio, nunca en routers, frontend ni integraciones",
+      "restricciones CHECK y EXCLUDE USING gist obligatorias en turnos",
+      "turno e historial en la misma transacción",
+      "TypeScript strict sin any en frontend; tipos anotados en Python",
+      "pytest contra PostgreSQL real para repositorios y API"
     ]
   }
 }

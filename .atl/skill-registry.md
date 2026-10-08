@@ -19,7 +19,7 @@ No se instaló ninguna skill adicional. `docs/skill-recommendations.md` document
 opciones evaluadas y sus motivos.
 
 - TDD adicional: diferido porque el proyecto ya exige un flujo TDD explícito.
-- `webapp-testing`: diferido porque el MVP no tiene interfaz web.
+- `webapp-testing`: diferido. Con el ajuste de stack (2026-10-08) el MVP sí incluye una agenda web React (C-15); se reevalúa al proponer ese change.
 - `vercel-optimize`: no aplicable porque no hay despliegue en Vercel.
 
 ## Regla de uso
