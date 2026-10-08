@@ -167,5 +167,21 @@
       "TypeScript strict sin any en frontend; tipos anotados en Python",
       "pytest contra PostgreSQL real para repositorios y API"
     ]
+  },
+  "opsx": {
+    "archived": [
+      {
+        "change": "crear-turno-sin-solapamientos",
+        "path": "openspec/changes/archive/2026-10-01-crear-turno-sin-solapamientos",
+        "stack": "Node.js + TypeScript (reemplazado)"
+      },
+      {
+        "change": "crear-turno-sin-solapamientos-fastapi",
+        "path": "openspec/changes/archive/2026-10-08-crear-turno-sin-solapamientos-fastapi",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "40 passed"
+      }
+    ],
+    "active": []
   }
 }

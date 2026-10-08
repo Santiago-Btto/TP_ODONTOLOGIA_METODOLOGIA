@@ -102,7 +102,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Dependencias**: ninguna
 
 ### [C-01b] `crear-turno-sin-solapamientos-fastapi`
-- **Estado**: `[ ]` en curso
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-10-08-crear-turno-sin-solapamientos-fastapi/` (40 tests en verde, ver `docs/evidencias/verificacion-c01b.md`)
 - **Scope**: Reimplementar el alta de turnos en el stack definido, sin cambiar el contrato de C-01.
   - `backend/` con FastAPI, SQLAlchemy 2.0 y pytest; `docker-compose.yml` con `db` (PostgreSQL 17) y `api`; `.env.example` sin secretos.
   - Dominio Python puro: entidades, errores tipados e intersección semiabierta `[inicio, fin)`.
