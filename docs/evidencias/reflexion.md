@@ -3,7 +3,7 @@
 **Proyecto:** turnos-odontologia  
 **Integrantes:** Santiago Barretto, Mateo Algañaraz, Ezequiel Menéndez  
 **Modalidad:** Grupal (3 integrantes)  
-**Fecha:** 2026-10-08
+**Fecha:** 2026-10-09
 
 ## ¿Qué información del Discovery resultó incorrecta, no verificable o inventada por el agente? ¿Cómo lo detectamos?
 
@@ -11,7 +11,7 @@ Detectamos tres tipos de problema, con métodos distintos. **Primero, celdas inc
 
 ## ¿En qué etapa usamos Ajustar, qué estaba mal y qué habría pasado si apretábamos Continuar?
 
-Usamos Ajustar tres veces. **En el gate de Discovery (2026-10-02):** estaban mal las cuatro celdas anteriores; aplicamos las correcciones al informe, recalculamos la matriz y decidimos *Continuar con supuestos documentados*, dejando en claro que las entrevistas a consultorios y la política de cancelación/sobreturno siguen abiertas en `knowledge-base/10_preguntas_abiertas.md`. Si hubiéramos apretado Continuar sin corregir, la matriz habría bajado injustificadamente a DentalSoft y Dentios, y "sobreturnos: No evidenciado" podría haberse convertido en una regla del código sin evidencia. **En la fundación, al detectar el stack (2026-10-08, DD-02):** estaba mal que la KB fijara Node.js en memoria cuando la cátedra define FastAPI + PostgreSQL + React; el Ajustar reescribió KB, arquitectura, CHANGES y README, y disparó la reimplementación del change. Si hubiéramos continuado, estaríamos acumulando código en un stack que no se usa y postergando la prevención transaccional de solapamientos en la base (`EXCLUDE USING gist`), que el Discovery marca como imprescindible. **Durante Apply de C-01b:** al persistir turno + historial apareció un `ForeignKeyViolation`; se corrigió ajustando una frase del `design.md` sin tocar el comportamiento especificado — el caso se resolvió en el artefacto de diseño, no improvisando sobre el spec.
+Usamos Ajustar tres veces. **En el gate de Discovery (2026-10-02):** estaban mal las cuatro celdas anteriores; aplicamos las correcciones al informe, recalculamos la matriz y decidimos *Continuar con supuestos documentados*, dejando en claro que las entrevistas a consultorios y la política de cancelación/sobreturno siguen abiertas en `knowledge-base/10_preguntas_abiertas.md`. Si hubiéramos apretado Continuar sin corregir, la matriz habría bajado injustificadamente a DentalSoft y Dentios, y "sobreturnos: No evidenciado" podría haberse convertido en una regla del código sin evidencia. **En la fundación, al revisar el stack (2026-10-08, DD-02):** estaba mal que la KB presentara Node.js en memoria como un hecho cerrado sin una decisión del equipo. La consigna habilita definir el stack desde la KB; por eso el equipo eligió y documentó FastAPI + PostgreSQL + React por la necesidad de una restricción transaccional contra doble reserva, pruebas de integración y una agenda web futura. El Ajustar reescribió KB, arquitectura, CHANGES y README, y disparó la reimplementación del change. Si hubiéramos continuado, habríamos sostenido un stack elegido sin justificación trazable y postergado la prevención transaccional de solapamientos en la base (`EXCLUDE USING gist`), que el Discovery marca como imprescindible. **Durante Apply de C-01b:** al persistir turno + historial apareció un `ForeignKeyViolation`; se corrigió ajustando una frase del `design.md` sin tocar el comportamiento especificado — el caso se resolvió en el artefacto de diseño, no improvisando sobre el spec.
 
 ## ¿Qué diferencia notamos entre implementar con una especificación aprobada y pedir código con un prompt suelto?
 

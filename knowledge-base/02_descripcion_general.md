@@ -2,7 +2,7 @@
 
 ## Stack tecnológico
 
-> **Ajustar (2026-10-08).** La versión inicial de esta KB fijaba Node.js + TypeScript con repositorios en memoria. El equipo la corrigió para adoptar el stack definido por la cátedra para el Sistema Odontológico. Ver [DD-02](09_decisiones_y_supuestos.md#dd-02--stack-definido-fastapi--postgresql--react).
+> **Ajustar (2026-10-08).** La versión inicial de esta KB fijaba Node.js + TypeScript con repositorios en memoria. La consigna permite definir el stack desde la KB; el equipo revisó esa decisión y adoptó FastAPI + PostgreSQL + React, con su justificación en [DD-02](09_decisiones_y_supuestos.md#dd-02--stack-definido-fastapi--postgresql--react).
 
 ### Backend
 

@@ -13,7 +13,7 @@
 ### DD-02 — Stack definido: FastAPI + PostgreSQL + React
 
 **Decisión**: Backend en Python 3.12 con FastAPI, SQLAlchemy 2.0, PostgreSQL, JWT para autenticación, Redis para funcionalidades asincrónicas y Docker / Docker Compose; frontend en React + TypeScript + Vite. Pruebas con pytest contra PostgreSQL real.
-**Contexto**: El stack es una definición de la cátedra para el Sistema Odontológico. La versión original de esta decisión (2026-10-01) fijaba Node.js + TypeScript con `node:test` y repositorios en memoria; el equipo la revisó y aplicó **Ajustar** el 2026-10-08 porque contradecía ese requisito.
+**Contexto**: La consigna permite que el equipo defina el stack a partir de la Knowledge Base; no prescribe FastAPI, PostgreSQL ni React. La versión original de esta decisión (2026-10-01) fijaba Node.js + TypeScript con `node:test` y repositorios en memoria. El equipo la revisó y aplicó **Ajustar** el 2026-10-08: eligió este stack por las necesidades de persistencia transaccional, pruebas contra una base real y una futura agenda web, documentando la decisión en esta DD-02.
 **Alternativas consideradas**: Mantener el núcleo Node.js en memoria y migrar más adelante (descartada: acumula código en un stack que no se va a usar y posterga la prevención transaccional de solapamientos que el Discovery marca como imprescindible).
 **Justificación**: PostgreSQL permite imponer la regla anti-solapamiento también en la base (`EXCLUDE USING gist`), cerrando la ventana de doble reserva concurrente. FastAPI expone los casos de uso sin mover reglas al controlador.
 **Trade-offs aceptados**: Ejecutar los tests requiere PostgreSQL (Docker Compose o instalación local). El dominio sigue siendo Python puro y se prueba sin base.

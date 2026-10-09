@@ -97,7 +97,7 @@ Síntesis por sistema derivada **sólo** de las celdas de la tabla A. La evidenc
 | Odensys | 2 | 4 | 1 | 3 | 1 | 0 | 3 | **2,15** |
 | OdontoGRAMA | 2 | 2 | 1 | 4 | 1 | 1 | 5 | **2,10** |
 
-**Correcciones de la verificación personal (2026-10-02).** DentalSoft pasó de 2 a 4 en precio/publicación de planes (antes “No evidenciado”, ahora con montos publicados en la fuente oficial); Dentios de 1 a 2 en SEG y Denteo de 1 a 2 en SEG (respaldos y seguridad declarados con detalle en la fuente). El resto de las notas no cambió. **Corrección de la revisión complementaria (2026-10-08):** Dental-IA pasó de 2 a 4 en precio/adopción por publicar montos en su sitio (mismo criterio aplicado a DentalSoft); total 2,60 → 2,70. La selección de demos de la sección D no sigue el orden exacto de esta matriz: además de la puntuación considera cercanía al mercado argentino.
+**Correcciones de la verificación personal (2026-10-02).** DentalSoft pasó de 2 a 4 en precio/publicación de planes (antes “No evidenciado”, ahora con montos publicados en la fuente oficial); Dentios de 1 a 2 en SEG y Denteo de 1 a 2 en SEG (respaldos y seguridad declarados con detalle en la fuente). El resto de las notas no cambió. **Corrección documental complementaria (2026-10-08):** una consulta automatizada detectó precios publicados de Dental-IA y actualizó provisionalmente su puntaje de precio/adopción de 2 a 4 (total 2,60 → 2,70), con el mismo criterio aplicado a DentalSoft. Esta corrección no equivale a verificación personal: un integrante debe abrir la URL y confirmar los montos antes de la entrega. La selección de demos de la sección D no sigue el orden exacto de esta matriz: además de la puntuación considera cercanía al mercado argentino.
 
 ## C. Análisis competitivo
 
@@ -205,7 +205,7 @@ Al completar la sección A.2, el agente de IA (sesión conducida por Mateo Alga�
 
 | Fuente | Qué afirmaba el informe | Qué mostró la URL el 2026-10-08 | Resultado |
 |---|---|---|---|
-| [Dental-IA](https://www.dentalia.com.ar/) | Precios: No evidenciado | Planes con montos publicados ($125.000 y $195.000 ARS/mes) y prueba de 15 días | **Corregida** en A y B (precio 2 → 4). Pendiente de confirmación personal. |
+| [Dental-IA](https://www.dentalia.com.ar/) | Precios: No evidenciado | Consulta automatizada: planes con montos publicados ($125.000 y $195.000 ARS/mes) y prueba de 15 días | **Corrección documental complementaria** en A y B (precio 2 → 4); pendiente de confirmación personal. |
 | [DentalQub](https://dentalqub.cl/) | Precio desde 0,67 UF/mes y prueba de 7 días | Starter 0,67 UF/mes con facturación anual; prueba de 7 días sin tarjeta | Confirmada sin cambios. |
 | DentalSoft, AgendaPro, Simples Dental, Clinicorp, Hi Órbita, Odontosys y Dentios (URLs de la tabla A) | Adopción: no relevada | Cifras de clientes y/o testimonios publicados | Incorporados en A.2 como afirmación comercial. |
 
