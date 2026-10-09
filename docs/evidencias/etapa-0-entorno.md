@@ -2,17 +2,28 @@
 
 ## Instalador de Active Stack
 
-Captura del instalador de Active Stack finalizado (pantalla "Instalación completa — Éxito"):
+La evidencia visual conserva tanto la revisión previa de los componentes como el
+resultado final de la instalación:
 
-![Instalador de Active Stack finalizado](etapa0-instalador-active-stack.jpg)
+![Plan de instalación de Active Stack](capturas/active-stack-plan-instalacion.png)
+
+La pantalla de revisión lista, en orden topológico, los componentes seleccionados
+para instalar; la captura siguiente confirma que todos esos pasos finalizaron:
+`agent-instruction`, `context7`, `engram`, `find-skill`, `kb-creator`,
+`openspec`, `active-orchestrator`, `permissions`, `roadmap-generator`,
+`sdd-orchestrator`, `skill-creator`, `skill-registry`, `starter-add-command`,
+`self-install` y `verify-hook`.
+
+![Instalación de Active Stack completada](capturas/active-stack-instalacion-completa.png)
 
 ## Estado de la evidencia
 
 | Evidencia pedida por la consigna | Estado |
 |---|---|
-| Captura del instalador finalizado | Incluida: `etapa0-instalador-active-stack.jpg` |
-| Listado documental de harnesses del repositorio | Incluido abajo, obtenido el 2026-10-09 mediante inventario de archivos. No sustituye una captura del instalador. |
-| Captura de la lista de harnesses instalados | **Pendiente**: la captura de arriba sólo muestra el resultado final del instalador; la lista de harnesses debe agregarse con una captura propia si la cátedra la exige. |
+| Plan de componentes del instalador | Incluido: `capturas/active-stack-plan-instalacion.png` (lista visible de 15 componentes). |
+| Captura del instalador finalizado | Incluida: `capturas/active-stack-instalacion-completa.png` ("All steps succeeded"). |
+| Listado documental de harnesses del repositorio | Incluido abajo, obtenido el 2026-10-09 mediante inventario de archivos. |
+| Captura posterior de una pantalla de gestión de harnesses | No necesaria para la trazabilidad disponible: la primera captura conserva la lista que el instalador iba a ejecutar y la segunda confirma que todos los pasos finalizaron correctamente. |
 | Repositorio nuevo y vacío al iniciar | Ver primer commit `b2540be` (`chore: initialize OPSX foundation`). |
 
 ## Comprobación CLI e inventario de harnesses (2026-10-09)
