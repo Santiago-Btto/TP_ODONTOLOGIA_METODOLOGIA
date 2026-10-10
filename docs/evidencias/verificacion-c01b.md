@@ -50,6 +50,12 @@ El único warning corresponde a una deprecación de Starlette `TestClient`: el
 alias `anyio.abc.BlockingPortal` está deprecado. No hubo fallos ni omisiones de
 tests.
 
+La siguiente captura tomada durante la verificación muestra Docker Desktop con
+el motor en estado **Engine running** y el proyecto Compose
+`tp-odontologia-verification-20261010` activo:
+
+![Docker Desktop con el motor en ejecución](capturas/docker-engine-running.png)
+
 Prueba de humo adicional con `uvicorn app.api.main:app` y semillas ficticias: `GET /health` → `200 {"estado":"ok","base_de_datos":"ok"}`; `POST /api/v1/turnos` → `201`; segundo alta solapada del mismo profesional → `409 conflicto_profesional`; `GET /docs` → `200`.
 
 ## Trazabilidad escenario → test
