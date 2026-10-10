@@ -1,16 +1,18 @@
 # Verify — C-01b `crear-turno-sin-solapamientos-fastapi`
 
-**Fecha:** 2026-10-08
+**Fecha:** 2026-10-10 (actualiza la verificación local del 2026-10-08)
 
 La instalación no ofrece una fase de verificación como comando propio, así que la suite se ejecutó a mano.
 
 ## Entorno
 
 - Python 3.12.10, FastAPI 0.115.6, SQLAlchemy 2.0.36, psycopg 3.2.3, pytest 8.3.4.
-- PostgreSQL 17.11 local (clúster descartable, extensión `btree_gist`).
-- Docker no estaba instalado en la máquina de verificación: la opción A del README (Docker Compose) **no se ejecutó**; se verificó la opción B (Python + PostgreSQL locales).
+- PostgreSQL 17.11 local (clúster descartable, extensión `btree_gist`) para la ejecución original de opción B.
+- Docker Compose verificado el 2026-10-10 desde un clon limpio: descargó `postgres:17`, construyó la imagen `api` y esperó a que PostgreSQL estuviera `Healthy`.
 
-## Ejecución desde un clon limpio, siguiendo sólo el README (opción B)
+## Ejecución desde un clon limpio, siguiendo sólo el README
+
+### Opción B — Python + PostgreSQL locales (2026-10-08)
 
 ```text
 cd backend
@@ -20,6 +22,33 @@ TEST_DATABASE_URL=postgresql+psycopg://...@localhost:55432/turnos_limpio .venv/S
 ...
 ============================= 40 passed in 5.33s ==============================
 ```
+
+### Opción A — Docker Compose (2026-10-10)
+
+Desde `C:\Users\esteb\AppData\Local\Temp\tp-odontologia-verification-20261010`
+se ejecutó:
+
+```text
+& 'C:\Program Files\Docker\Docker\resources\bin\docker.exe' compose run --rm api pytest
+```
+
+Docker descargó `postgres:17`, construyó `api`, creó la base de datos y esperó
+su healthcheck. Pytest, dentro del contenedor API, informó:
+
+```text
+platform linux -- Python 3.12.15, pytest-8.3.4, pluggy-1.6.0
+collected 40 items
+tests/api/test_turnos_api.py ........                                    [ 20%]
+tests/application/test_crear_turno.py ............                       [ 50%]
+tests/domain/test_disponibilidad.py .......                              [ 67%]
+tests/domain/test_turnos.py ......                                       [ 82%]
+tests/infrastructure/test_persistencia.py .......                        [100%]
+======================== 40 passed, 1 warning in 1.47s =========================
+```
+
+El único warning corresponde a una deprecación de Starlette `TestClient`: el
+alias `anyio.abc.BlockingPortal` está deprecado. No hubo fallos ni omisiones de
+tests.
 
 Prueba de humo adicional con `uvicorn app.api.main:app` y semillas ficticias: `GET /health` → `200 {"estado":"ok","base_de_datos":"ok"}`; `POST /api/v1/turnos` → `201`; segundo alta solapada del mismo profesional → `409 conflicto_profesional`; `GET /docs` → `200`.
 
