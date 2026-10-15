@@ -62,7 +62,7 @@ La fuente de verdad del dominio vive en `knowledge-base/`. Leé el archivo relev
 
 Cargá la skill correspondiente al contexto antes de actuar.
 
-> El registro de skills del proyecto está versionado en [`.atl/skill-registry.md`](.atl/skill-registry.md). Las skills locales viven en [`skills/`](skills/) y se cargan según sus triggers; el backend vigente es síncrono, por lo que async exige un change que lo diseñe de punta a punta.
+> El registro de skills del proyecto está versionado en [`.atl/skill-registry.md`](.atl/skill-registry.md). Las skills locales viven en [`.agents/skills/`](.agents/skills/) y se cargan según sus triggers; el backend vigente es síncrono, por lo que async exige un change que lo diseñe de punta a punta.
 
 ---
 

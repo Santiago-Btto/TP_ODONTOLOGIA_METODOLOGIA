@@ -15,11 +15,11 @@ repositorio, sin reemplazar OPSX ni las reglas de `AGENTS.md`.
 
 | Skill | Fuente | Aporte al proyecto | Decisión |
 |---|---|---|---|
-| `fastapi-templates` | [`wshobson/agents`](https://github.com/wshobson/agents) | Endpoints, dependencias, esquemas y errores de FastAPI. | **Instalada** en `skills/fastapi-templates`. Se adapta a la arquitectura por capas y al camino síncrono vigente. |
-| `async-python-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Criterios para elegir asincronía y evitar bloquear el event loop. | **Instalada, uso condicional** en `skills/async-python-patterns`. Solo se carga si un change aprueba migrar una ruta completa a async; no se mezcla con `Session` síncrona. |
-| `python-testing-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Fixtures, aislamiento y cobertura de pruebas pytest. | **Instalada** en `skills/python-testing-patterns`. Los tests de repositorio y API siguen usando PostgreSQL real, no mocks de la base. |
-| `postgresql-table-design` | [`wshobson/agents`](https://github.com/wshobson/agents) | Tipos, índices y restricciones propios de PostgreSQL. | **Instalada** en `skills/postgresql-table-design`. Refuerza el uso de `CHECK` y `EXCLUDE` para evitar solapamientos. |
-| `security-best-practices` | [`openai/skills`](https://github.com/openai/skills) | Guía secure-by-default y revisión de seguridad para FastAPI y React. | **Instalada** en `skills/security-best-practices`. Se carga ante pedido explícito de revisión/guía de seguridad o para escribir código secure-by-default autorizado; no inicia auditorías automáticas. |
+| `fastapi-templates` | [`wshobson/agents`](https://github.com/wshobson/agents) | Endpoints, dependencias, esquemas y errores de FastAPI. | **Instalada** en `.agents/skills/fastapi-templates`. Se adapta a la arquitectura por capas y al camino síncrono vigente. |
+| `async-python-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Criterios para elegir asincronía y evitar bloquear el event loop. | **Instalada, uso condicional** en `.agents/skills/async-python-patterns`. Solo se carga si un change aprueba migrar una ruta completa a async; no se mezcla con `Session` síncrona. |
+| `python-testing-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Fixtures, aislamiento y cobertura de pruebas pytest. | **Instalada** en `.agents/skills/python-testing-patterns`. Los tests de repositorio y API siguen usando PostgreSQL real, no mocks de la base. |
+| `postgresql-table-design` | [`wshobson/agents`](https://github.com/wshobson/agents) | Tipos, índices y restricciones propios de PostgreSQL. | **Instalada** en `.agents/skills/postgresql-table-design`. Refuerza el uso de `CHECK` y `EXCLUDE` para evitar solapamientos. |
+| `security-best-practices` | [`openai/skills`](https://github.com/openai/skills) | Guía secure-by-default y revisión de seguridad para FastAPI y React. | **Instalada** en `.agents/skills/security-best-practices`. Se carga ante pedido explícito de revisión/guía de seguridad o para escribir código secure-by-default autorizado; no inicia auditorías automáticas. |
 
 ## Decisiones de alcance
 
@@ -28,7 +28,7 @@ repositorio, sin reemplazar OPSX ni las reglas de `AGENTS.md`.
 - No se instala una skill de patrones Docker: cambios de imágenes, volúmenes y
   entornos pueden tener impacto alto; se revisan con Docker Compose, la
   knowledge base y las reglas específicas del repositorio.
-- Las skills se mantienen versionadas en `skills/`; al cambiarlas se actualizan
+- Las skills se mantienen versionadas en `.agents/skills/`; al cambiarlas se actualizan
   `.atl/skill-registry.md`, `AGENTS.md` y `CLAUDE.md`.
 
 La selección no reemplaza el flujo OpenSpec/OPSX: cada cambio sigue requiriendo

@@ -16,7 +16,7 @@ El 2026-10-08 se aplicó **Ajustar** sobre la fundación porque el stack fijado 
 |---|---|---|
 | Etapa 0: captura del instalador | Verificado | `docs/evidencias/capturas/active-stack-instalacion-completa.png` y `etapa-0-entorno.md`. |
 | Etapa 0: harnesses instalados | Verificado | `docs/evidencias/capturas/active-stack-plan-instalacion.png` conserva la lista de 15 componentes seleccionados y la captura de finalización confirma “All steps succeeded”. |
-| Repositorio con instrucciones, estado de fundación y registro de skills | Verificado | `AGENTS.md`, `CLAUDE.md` (sincronizados), `.active-orchestrator-state.json` (`step: "done"`, stack, `opsx` y cinco skills versionadas actualizados), `.atl/skill-registry.md` y `skills/`. |
+| Repositorio con instrucciones, estado de fundación y registro de skills | Verificado | `AGENTS.md`, `CLAUDE.md` (sincronizados), `.active-orchestrator-state.json` (`step: "done"`, stack, `opsx` y cinco skills versionadas actualizados), `.atl/skill-registry.md` y `.agents/skills/`. |
 | Discovery en Markdown y PDF | Verificado | `docs/discovery/informe-discovery.md` v1.2 y PDF regenerado con portada; checklist en `docs/discovery/checklist-discovery.md`. |
 | Knowledge base con los 10 documentos canónicos | Verificado | DD-02 registra que el equipo eligió el stack tras Ajustar, conforme a la posibilidad de definirlo desde la KB; no lo atribuye a una imposición de la cátedra. |
 | Roadmap alineado con la sección D | Verificado | `CHANGES.md`: se agregaron C-16 (recordatorio simulado), C-17 (datos mínimos de paciente) y C-15 (agenda web); camino crítico corregido. |

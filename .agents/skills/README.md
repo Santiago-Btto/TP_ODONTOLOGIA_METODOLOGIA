@@ -1,6 +1,6 @@
 # Skills versionadas del proyecto
 
-Esta carpeta conserva las skills que complementan el flujo OPSX del entorno. Se leen
+Esta carpeta (`.agents/skills/`) conserva las skills que complementan el flujo OPSX del entorno. Se leen
 desde el repositorio para que cualquier integrante o agente trabaje con las mismas
 guías, incluso al clonar el proyecto en otra máquina.
 
@@ -26,7 +26,7 @@ nunca para mezclar `Session` y `AsyncSession` en una misma cadena.
 
 ## Mantenimiento
 
-Las skills de esta carpeta deben mantenerse versionadas. Al agregar, actualizar o quitar
+Las skills de `.agents/skills/` deben mantenerse versionadas. Al agregar, actualizar o quitar
 una, actualizar también `.atl/skill-registry.md` y las tablas de skills de `AGENTS.md`
 y `CLAUDE.md`; no declarar una skill como disponible hasta que sus archivos estén en el
 repositorio.

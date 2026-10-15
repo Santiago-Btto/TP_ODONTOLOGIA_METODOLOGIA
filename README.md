@@ -14,6 +14,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 backend/            API FastAPI, dominio, casos de uso, persistencia y tests (pytest)
 docker-compose.yml  PostgreSQL + API para desarrollo local
 knowledge-base/     Base de conocimiento del proyecto
+.agents/skills/     Skills locales versionadas y skills OPSX del proyecto
 openspec/           Specs vigentes y changes archivados
 docs/               Discovery, exploraciones OPSX y evidencias
 CHANGES.md          Roadmap de changes

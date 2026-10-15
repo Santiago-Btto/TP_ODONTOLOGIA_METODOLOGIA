@@ -149,31 +149,31 @@
     "installed": [
       {
         "name": "fastapi-templates",
-        "path": "skills/fastapi-templates/SKILL.md",
+        "path": ".agents/skills/fastapi-templates/SKILL.md",
         "source": "wshobson/agents",
         "note": "Guía para endpoints, dependencias y estructura de FastAPI."
       },
       {
         "name": "async-python-patterns",
-        "path": "skills/async-python-patterns/SKILL.md",
+        "path": ".agents/skills/async-python-patterns/SKILL.md",
         "source": "wshobson/agents",
         "note": "Uso condicional para una migración async integral; el backend actual permanece síncrono."
       },
       {
         "name": "python-testing-patterns",
-        "path": "skills/python-testing-patterns/SKILL.md",
+        "path": ".agents/skills/python-testing-patterns/SKILL.md",
         "source": "wshobson/agents",
         "note": "Patrones para pruebas pytest por capa contra PostgreSQL real."
       },
       {
         "name": "postgresql-table-design",
-        "path": "skills/postgresql-table-design/SKILL.md",
+        "path": ".agents/skills/postgresql-table-design/SKILL.md",
         "source": "wshobson/agents",
         "note": "Diseño de tablas, restricciones e índices PostgreSQL."
       },
       {
         "name": "security-best-practices",
-        "path": "skills/security-best-practices/SKILL.md",
+        "path": ".agents/skills/security-best-practices/SKILL.md",
         "source": "openai/skills",
         "note": "Guía de desarrollo seguro para FastAPI y React cuando el change lo requiera."
       }
