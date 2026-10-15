@@ -54,10 +54,15 @@ La fuente de verdad del dominio vive en `knowledge-base/`. Leé el archivo relev
 | **Implementación OPSX** | Aplicar tasks y sincronizar especificaciones | `openspec-apply-change`, `openspec-sync-specs` |
 | **Cierre OPSX** | Archivar changes completos | `openspec-archive-change` |
 | **Extensión de capacidades** | Buscar o crear skills | `find-skills`, `skill-creator` |
+| **Backend / API** | Endpoints, dependencias y errores FastAPI | `fastapi-templates` |
+| **Base de datos** | Esquema, restricciones e índices PostgreSQL 17 | `postgresql-table-design` |
+| **Calidad** | Pruebas pytest de dominio, aplicación, infraestructura y API | `python-testing-patterns` |
+| **Seguridad** | Revisión/guía explícita o código secure-by-default autorizado | `security-best-practices` |
+| **Asincronía (condicional)** | Solo changes que adopten una cadena async completa | `async-python-patterns` |
 
 Cargá la skill correspondiente al contexto antes de actuar.
 
-> El registro de skills del proyecto está versionado en [`.atl/skill-registry.md`](.atl/skill-registry.md) (generado por `skill-registry`). Esta tabla sólo mapea skill→rol.
+> El registro de skills del proyecto está versionado en [`.atl/skill-registry.md`](.atl/skill-registry.md). Las skills locales viven en [`skills/`](skills/) y se cargan según sus triggers; el backend vigente es síncrono, por lo que async exige un change que lo diseñe de punta a punta.
 
 ---
 

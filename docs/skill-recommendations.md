@@ -1,42 +1,35 @@
-# Recomendación de skills para el MVP
+# Decisión de skills para el proyecto
 
-Fecha de verificación: 2026-10-01.
+Fecha de actualización: 2026-10-15.
 
-## Contexto evaluado
+## Contexto actual
 
-El MVP es un CLI de agenda odontológica en Node.js + TypeScript. La base de
-conocimiento prescribe `node:test` y ninguna dependencia externa. La calidad
-se rige además por TDD estricto ya configurado en las instrucciones del
-proyecto. Por lo tanto, una skill adicional solo se justifica si aporta una
-capacidad que el flujo actual no cubre y que esté dentro del alcance presente.
+El proyecto es una API de turnos odontológicos en Python 3.12, FastAPI,
+SQLAlchemy 2.0 y PostgreSQL 17. Docker Compose reproduce la API y la base de
+datos, y `pytest` verifica dominio, aplicación, infraestructura y API contra
+PostgreSQL real. Las reglas de disponibilidad requieren `CHECK`, `btree_gist`
+y restricciones `EXCLUDE`; por eso se incorporaron skills específicas al
+repositorio, sin reemplazar OPSX ni las reglas de `AGENTS.md`.
 
-## Opciones verificadas
+## Skills instaladas y decisión
 
-| Opción | Fuente y señal de calidad | Aporte potencial | Decisión para el MVP |
-| --- | --- | --- | --- |
-| `obra/superpowers` — `test-driven-development` | [Repositorio público de obra/superpowers](https://github.com/obra/superpowers), ~287 mil estrellas al verificarlo; documenta el ciclo RED → GREEN → REFACTOR. | Disciplina de TDD agnóstica del framework. | **No instalar.** Duplica el módulo de TDD estricto ya obligatorio para este proyecto; añadirlo haría coexistir dos autoridades sobre el mismo ciclo. |
-| `anthropics/skills` — `webapp-testing` | [Skill oficial](https://github.com/anthropics/skills/tree/main/skills/webapp-testing); el repositorio contaba con ~176 mil estrellas. Es una herramienta Playwright para verificar aplicaciones web locales. | E2E de una futura interfaz web. | **Diferir.** El alcance actual es un CLI y no hay UI. Además requiere Playwright y sus dependencias, en contra de la decisión del MVP de no sumar dependencias externas. |
-| `vercel-labs/agent-skills` — `vercel-optimize` | [Skill oficial](https://github.com/vercel-labs/agent-skills/tree/main/skills/vercel-optimize); el repositorio contaba con ~31 mil estrellas. Su propia documentación exige Node.js 20+, Vercel CLI autenticado y un proyecto Vercel vinculado. | Auditoría de costo/rendimiento de un servicio ya desplegado en Vercel. | **No instalar.** No existe despliegue ni cuenta Vercel dentro del alcance; la skill sería inejecutable y no mejora el dominio de turnos. |
+| Skill | Fuente | Aporte al proyecto | Decisión |
+|---|---|---|---|
+| `fastapi-templates` | [`wshobson/agents`](https://github.com/wshobson/agents) | Endpoints, dependencias, esquemas y errores de FastAPI. | **Instalada** en `skills/fastapi-templates`. Se adapta a la arquitectura por capas y al camino síncrono vigente. |
+| `async-python-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Criterios para elegir asincronía y evitar bloquear el event loop. | **Instalada, uso condicional** en `skills/async-python-patterns`. Solo se carga si un change aprueba migrar una ruta completa a async; no se mezcla con `Session` síncrona. |
+| `python-testing-patterns` | [`wshobson/agents`](https://github.com/wshobson/agents) | Fixtures, aislamiento y cobertura de pruebas pytest. | **Instalada** en `skills/python-testing-patterns`. Los tests de repositorio y API siguen usando PostgreSQL real, no mocks de la base. |
+| `postgresql-table-design` | [`wshobson/agents`](https://github.com/wshobson/agents) | Tipos, índices y restricciones propios de PostgreSQL. | **Instalada** en `skills/postgresql-table-design`. Refuerza el uso de `CHECK` y `EXCLUDE` para evitar solapamientos. |
+| `security-best-practices` | [`openai/skills`](https://github.com/openai/skills) | Guía secure-by-default y revisión de seguridad para FastAPI y React. | **Instalada** en `skills/security-best-practices`. Se carga ante pedido explícito de revisión/guía de seguridad o para escribir código secure-by-default autorizado; no inicia auditorías automáticas. |
 
-## Decisión
+## Decisiones de alcance
 
-No se instala ninguna skill adicional en este MVP. El conjunto actual cubre lo
-necesario:
+- No se instala una skill de TDD: el proyecto ya define su disciplina de pruebas en
+  las instrucciones y una segunda autoridad duplicaría reglas.
+- No se instala una skill de patrones Docker: cambios de imágenes, volúmenes y
+  entornos pueden tener impacto alto; se revisan con Docker Compose, la
+  knowledge base y las reglas específicas del repositorio.
+- Las skills se mantienen versionadas en `skills/`; al cambiarlas se actualizan
+  `.atl/skill-registry.md`, `AGENTS.md` y `CLAUDE.md`.
 
-- OpenSpec/OPSX gobierna propuesta, aplicación y archivo de cambios.
-- El módulo de TDD estricto exige pruebas primero, ejecución de la suite y
-  evidencia de RED/GREEN/TRIANGULATE/REFACTOR.
-- `node:test`, junto con TypeScript, permite probar la lógica de solapamiento,
-  disponibilidad y estados sin framework ni dependencia extra.
-
-La recomendación se revisará únicamente si el alcance suma una interfaz web
-(evaluar `webapp-testing`) o un despliegue en Vercel (evaluar
-`vercel-optimize`). Para TDD se mantiene la política actual para evitar reglas
-duplicadas.
-
-## Fuentes consultadas
-
-- [obra/superpowers — test-driven-development](https://github.com/obra/superpowers)
-- [anthropics/skills — webapp-testing](https://github.com/anthropics/skills/tree/main/skills/webapp-testing)
-- [vercel-labs/agent-skills — vercel-optimize](https://github.com/vercel-labs/agent-skills/tree/main/skills/vercel-optimize)
-- [Node.js test runner](https://nodejs.org/api/test.html)
+La selección no reemplaza el flujo OpenSpec/OPSX: cada cambio sigue requiriendo
+proposal, diseño, pruebas contra PostgreSQL real y archivo al completarse.
