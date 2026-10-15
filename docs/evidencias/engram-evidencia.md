@@ -54,3 +54,30 @@ resultado de la recuperación. La evidencia demuestra una recuperación real de
 la observación `#95`, pero no permite reconstruir una captura de la sesión
 original ni justificar la existencia de otra observación no devuelta por esta
 búsqueda.
+
+## Búsqueda específica de C-01b
+
+**Fecha de consulta:** 2026-10-15
+
+Comando ejecutado:
+
+```text
+engram search 'crear-turno-sin-solapamientos-fastapi' --project turnos-odontologia --limit 10
+```
+
+Resultado relevante observado:
+
+```text
+Found 1 memories:
+
+[1] #113 (architecture) — OPSX: C-01b archived and verified
+    What: C-01b crear-turno-sin-solapamientos-fastapi was implemented, verified with 40 pytest cases against PostgreSQL through Docker Compose, and archived.
+    Why: It is the single completed change selected from the MVP to enforce no overlapping appointments by professional or box.
+    Where: openspec/change...
+    2026-10-15 09:06:33 | project: turnos-odontologia | scope: project
+```
+
+Esta búsqueda recupera la memoria del change vigente **C-01b** y complementa
+la observación `#95`, que corresponde al antecedente de stack anterior. Igual
+que el resto de este documento, transcribe una salida real de CLI: no finge una
+captura de pantalla ni una sesión gráfica inexistente.

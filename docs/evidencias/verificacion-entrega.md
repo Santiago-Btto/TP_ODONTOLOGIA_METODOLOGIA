@@ -16,7 +16,7 @@ El 2026-10-08 se aplicó **Ajustar** sobre la fundación porque el stack fijado 
 |---|---|---|
 | Etapa 0: captura del instalador | Verificado | `docs/evidencias/capturas/active-stack-instalacion-completa.png` y `etapa-0-entorno.md`. |
 | Etapa 0: harnesses instalados | Verificado | `docs/evidencias/capturas/active-stack-plan-instalacion.png` conserva la lista de 15 componentes seleccionados y la captura de finalización confirma “All steps succeeded”. |
-| Repositorio con instrucciones, estado de fundación y registro de skills | Verificado | `AGENTS.md`, `CLAUDE.md` (sincronizados), `.active-orchestrator-state.json` (`step: "done"`, stack y `opsx` actualizados), `.atl/skill-registry.md`. |
+| Repositorio con instrucciones, estado de fundación y registro de skills | Verificado | `AGENTS.md`, `CLAUDE.md` (sincronizados), `.active-orchestrator-state.json` (`step: "done"`, stack, `opsx` y cinco skills versionadas actualizados), `.atl/skill-registry.md` y `skills/`. |
 | Discovery en Markdown y PDF | Verificado | `docs/discovery/informe-discovery.md` v1.2 y PDF regenerado con portada; checklist en `docs/discovery/checklist-discovery.md`. |
 | Knowledge base con los 10 documentos canónicos | Verificado | DD-02 registra que el equipo eligió el stack tras Ajustar, conforme a la posibilidad de definirlo desde la KB; no lo atribuye a una imposición de la cátedra. |
 | Roadmap alineado con la sección D | Verificado | `CHANGES.md`: se agregaron C-16 (recordatorio simulado), C-17 (datos mínimos de paciente) y C-15 (agenda web); camino crítico corregido. |
@@ -27,9 +27,9 @@ El 2026-10-08 se aplicó **Ajustar** sobre la fundación porque el stack fijado 
 | README reproducible | Verificado (opciones A y B) | La opción local (Python + PostgreSQL) y la opción Docker Compose se ejecutaron desde clones limpios. El 2026-10-10, Docker construyó `api`, PostgreSQL alcanzó estado `healthy` y `docker compose run --rm api pytest` finalizó con `40 passed, 1 warning in 1.47s`. |
 | Cinco fuentes comprobadas personalmente | Verificado con salvedad | Hay 6 fuentes verificadas el 2026-10-02. La corrección de Dental-IA de 2026-10-08 es documental/complementaria y sigue requiriendo confirmación humana; no se cuenta como una séptima verificación personal. |
 | Momento de inspección “Ajustar” | Verificado | Discovery (2026-10-02) y fundación/stack (2026-10-08, commits `bc96daf`, `c5bab36`). |
-| Engram: guardado y recuperación real | Verificado por salida de CLI | `engram-evidencia.md` conserva las salidas de `engram context` y `engram search`; la búsqueda recupera la observación #95. No hay captura de la sesión original ni se declara una inexistente #96. |
+| Engram: guardado y recuperación real | Verificado por salida de CLI | `engram-evidencia.md` conserva las salidas de `engram context` y `engram search`; recupera la observación #95 del antecedente y #113 de C-01b. No hay captura de la sesión original ni se declara una inexistente. |
 | Video de defensa | Fuera de alcance en esta revisión | Se ignora por indicación actual del equipo. Verificar con la cátedra si la consigna lo exige para la entrega. |
-| Reflexión escrita | Presente, requiere validación de autoría | `docs/evidencias/reflexion.md` fue actualizada: describe DD-02 como decisión del equipo, no requisito externo. Cada integrante debe confirmar que representa su experiencia y ajustar lo que no sea propio. |
+| Reflexión escrita | Consistencia de contenido validada; autoría personal pendiente | `docs/evidencias/reflexion.md` fue contrastada con Discovery, KB, OPSX y evidencias en `validacion-reflexion.md`; describe DD-02 como decisión del equipo, no requisito externo. Cada integrante debe confirmar que representa su experiencia y ajustar lo que no sea propio. |
 | Historial de commits con el proceso | Verificado | Commits del 2026-10-08 con autoría de Mateo Algañaraz: evidencia, Ajustar de KB/roadmap/reglas y ciclo OPSX completo de C-01b (explore → propose → apply → verify → archive). Santiago y Ezequiel deberían sumar commits propios de lo que condujeron. |
 | Sin secretos ni datos reales | Verificado | Fixtures y semillas “Demo Ficticio”; `.env` ignorado; `.env.example` y `docker-compose.yml` sólo con credenciales de desarrollo local. |
 
@@ -63,5 +63,5 @@ El único warning fue una deprecación de Starlette `TestClient`: el alias
 ## Pendientes que no se pueden simular
 
 1. Confirmar personalmente la corrección de precios de Dental-IA (revisión documental/complementaria del informe).
-2. Cada integrante debe revisar y validar como propia la reflexión antes de presentarla.
+2. Cada integrante debe revisar y confirmar como propia la reflexión antes de presentarla; la validación de contenido no certifica autoría humana individual.
 3. Consultar a la cátedra si el video continúa siendo obligatorio; se excluyó de esta revisión sólo por indicación actual del equipo.
