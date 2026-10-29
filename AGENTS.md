@@ -57,12 +57,17 @@ La fuente de verdad del dominio vive en `knowledge-base/`. Leé el archivo relev
 | **Backend / API** | Endpoints, dependencias y errores FastAPI | `fastapi-templates` |
 | **Base de datos** | Esquema, restricciones e índices PostgreSQL 17 | `postgresql-table-design` |
 | **Calidad** | Pruebas pytest de dominio, aplicación, infraestructura y API | `python-testing-patterns` |
+| **Revisión de agenda** | Auditar escenarios de C-02 antes de aprobar especificación o pruebas | [`revisar-escenarios-agenda`](.agents/skills/revisar-escenarios-agenda/SKILL.md) |
 | **Seguridad** | Revisión/guía explícita o código secure-by-default autorizado | `security-best-practices` |
 | **Asincronía (condicional)** | Solo changes que adopten una cadena async completa | `async-python-patterns` |
 
 Cargá la skill correspondiente al contexto antes de actuar.
 
 > El registro de skills del proyecto está versionado en [`.atl/skill-registry.md`](.atl/skill-registry.md). Las skills locales viven en [`.agents/skills/`](.agents/skills/) y se cargan según sus triggers; el backend vigente es síncrono, por lo que async exige un change que lo diseñe de punta a punta.
+
+Para revisar la agenda, entregar a `revisar-escenarios-agenda` el alcance en [CHANGES.md](CHANGES.md), el estado y borradores del change C-02 en `openspec/changes/<cambio>/`, y las reglas de [knowledge-base/](knowledge-base/) (en particular US-002, RN-DI-01 y `Turno`, si existen). Revisar su matriz de regla y fuente, escenario Dado/Cuando/Entonces, prueba y estado (`cubierto`, `falta`, `ambiguo`), junto con los casos de éxito, borde, error y las preguntas abiertas. La skill audita: no cambia artefactos.
+
+**Context7** es un MCP de documentación, separado de las skills. Durante el diseño de C-02, usar `resolve-library-id` y `query-docs` para comprobar documentación pública de FastAPI y SQLAlchemy; contrastar las reglas de dominio con la KB. Enviar sólo preguntas técnicas públicas, sin datos reales de pacientes, secretos ni código privado. Es una consulta de lectura, sin mutaciones. Ver [configuración y comprobación de Context7](docs/skills-mcp/context7-configuracion.md).
 
 ---
 

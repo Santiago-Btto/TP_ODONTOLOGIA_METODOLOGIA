@@ -1,0 +1,4 @@
+interface:
+  display_name: "Revisar escenarios de agenda"
+  short_description: "Audita rangos, filtros y pruebas de la agenda"
+  default_prompt: "Usa $revisar-escenarios-agenda para auditar los escenarios del cambio de consulta de agenda y mostrar una matriz de trazabilidad sin editar archivos."

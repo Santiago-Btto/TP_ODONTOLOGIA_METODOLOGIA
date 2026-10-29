@@ -14,6 +14,7 @@ debe declarar disponible una skill que no tenga su `SKILL.md` en el repositorio.
 | Tests Python/pytest, TDD, fixtures, integración, API, base de datos o CI. | `python-testing-patterns` | [`.agents/skills/python-testing-patterns/SKILL.md`](../.agents/skills/python-testing-patterns/SKILL.md) |
 | Tablas, tipos, constraints, índices, migraciones, JSON o particiones PostgreSQL. | `postgresql-table-design` | [`.agents/skills/postgresql-table-design/SKILL.md`](../.agents/skills/postgresql-table-design/SKILL.md) |
 | Pedido explícito de guía/revisión de seguridad o código secure-by-default autorizado. | `security-best-practices` | [`.agents/skills/security-best-practices/SKILL.md`](../.agents/skills/security-best-practices/SKILL.md) |
+| Planificación o revisión de escenarios de consulta de agenda, especialmente C-02: rangos, filtros, orden, errores y trazabilidad. | `revisar-escenarios-agenda` | [`.agents/skills/revisar-escenarios-agenda/SKILL.md`](../.agents/skills/revisar-escenarios-agenda/SKILL.md) |
 
 ## Reglas compactas
 
@@ -70,6 +71,24 @@ proyecto, prevalece la regla específica del proyecto.
 - Para informes, escribir Markdown con resumen ejecutivo, hallazgos numerados por severidad e impacto; citar archivo y línea.
 - Presentar hallazgos y pedir autorización antes de iniciar fixes; corregir uno por vez y ejecutar los tests configurados.
 - Para IDs expuestos públicamente, evitar secuencias pequeñas previsibles y evaluar UUID4/hex aleatorio según el diseño.
+
+### revisar-escenarios-agenda
+
+- Auditar el borrador sin editar especificaciones, tareas, código ni pruebas; separar reglas confirmadas de decisiones abiertas.
+- Leer `CHANGES.md`, la KB y las specs aplicables; consultar `openspec status --change <cambio> --json` antes de atribuir artefactos.
+- Revisar US-002, RN-DI-01 y el modelo de `Turno` cuando estén disponibles; declarar fuentes ausentes o contradictorias.
+- Comprobar `inicio`, `fin` y el caso `inicio < fin`; tratar la respuesta a rango inválido como decisión pendiente si no está definida.
+- Verificar intersección de intervalos `[inicio, fin)`: `turno.inicio < rango.fin` y `turno.fin > rango.inicio`; un turno sólo contiguo queda fuera.
+- Cubrir turno contenido, que empieza antes, que termina después y que abarca todo el rango.
+- Revisar filtros de profesional y box: ninguno, cada uno y ambos; señalar combinación no definida.
+- Revisar ausencia de resultados y orden por inicio; no inventar desempate.
+- Plantear preguntas verificables sobre entradas inválidas, zonas horarias y cambios de horario si faltan políticas.
+- Vincular escenarios con pruebas previstas o existentes, distinguiendo las previstas de las ejecutadas.
+- Entregar matriz «Regla y fuente / Escenario Dado-Cuando-Entonces / Prueba / Estado», con éxito, borde, entrada inválida o error, y hallazgos priorizados.
+
+## MCP de documentación: Context7
+
+Context7 es un **servidor MCP**, no una skill del proyecto. Durante el diseño de C-02 permite consultar documentación pública actual de FastAPI y SQLAlchemy: `resolve-library-id` identifica la biblioteca y `query-docs` responde una pregunta técnica sobre ella. Usarlo para contrastar decisiones de API y consultas antes de cerrar el diseño; validar toda regla odontológica contra `knowledge-base/`. Enviar sólo preguntas técnicas públicas, sin datos reales de pacientes, secretos ni código privado. Las herramientas de consulta son de lectura y no modifican el repositorio ni servicios externos. Configuración, comprobación y evidencia: [Context7 para C-02](../docs/skills-mcp/context7-configuracion.md).
 
 ## Skills OPSX presentes en el proyecto
 
