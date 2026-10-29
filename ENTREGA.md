@@ -8,7 +8,7 @@
 
 **Repositorio:** https://github.com/Santiago-Btto/TP_ODONTOLOGIA_METODOLOGIA
 
-**Commit de entrega:** **[PENDIENTE: incorporar el hash del commit final ya publicado]**
+**Commit de entrega (artefactos de la Parte 2):** `db6d8ca8824a4451c232e26f13a7d8dc6609ffdc`
 
 **Video de demostración (hasta 5 minutos, accesible):** **[PENDIENTE: incorporar el enlace real luego de grabar y verificar permisos]**
 
@@ -16,4 +16,4 @@
 
 **Alcance del nuevo change:** C-02 `consultar-agenda` queda planificado mediante proposal, design, spec y tasks. Su implementación, pruebas y archivado corresponden a una instancia posterior.
 
-> Este archivo contiene campos pendientes y no acredita una entrega final hasta completar commit y video.
+> Falta el enlace al video auténtico para poder presentar la entrega final.
