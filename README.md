@@ -95,3 +95,9 @@ Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `pytho
 - Spec vigente: [openspec/specs/creacion-de-turnos/spec.md](openspec/specs/creacion-de-turnos/spec.md).
 - Changes archivados: [openspec/changes/archive/](openspec/changes/archive/).
 - Evidencias de entrega: [docs/evidencias/](docs/evidencias/).
+
+## Skill propia y Context7 para C-02
+
+La [ficha de investigación](docs/skills-mcp/investigacion.md) explica la elección de una skill de revisión de escenarios y del MCP Context7 para preparar la consulta de agenda. La [guía de Context7](docs/skills-mcp/context7-configuracion.md) detalla requisitos, configuración reproducible sin secretos, comprobación y límites; el [registro de uso](docs/skills-mcp/evidencias/context7-uso.md) muestra herramientas reales y su aporte. Context7 se configura en el `~/.codex/config.toml` personal, no dentro del repositorio.
+
+La [skill de revisión de agenda](.agents/skills/revisar-escenarios-agenda/SKILL.md) está versionada en el proyecto y [su evidencia de uso](docs/skills-mcp/evidencias/skill-uso.md) muestra el hallazgo de escenarios faltantes. El [informe de aplicación](docs/skills-mcp/aplicacion.md) resume cambios, revisión crítica y límites. La [guía de video](docs/skills-mcp/guion-video.md) y [ENTREGA.md](ENTREGA.md) ayudan a completar la presentación del equipo.
