@@ -176,9 +176,27 @@
         "path": ".agents/skills/security-best-practices/SKILL.md",
         "source": "openai/skills",
         "note": "Guía de desarrollo seguro para FastAPI y React cuando el change lo requiera."
+      },
+      {
+        "name": "revisar-escenarios-agenda",
+        "path": ".agents/skills/revisar-escenarios-agenda/SKILL.md",
+        "source": "propia (generada con skill-creator y adaptada por el equipo)",
+        "added": "2026-10-29",
+        "note": "Audita escenarios de consulta de agenda (C-02) sin editar artefactos; devuelve matriz regla → escenario → prueba → estado."
       }
     ]
   },
+  "mcp": [
+    {
+      "name": "context7",
+      "type": "integración MCP (no es skill)",
+      "transport": "stdio",
+      "config": "~/.codex/config.toml (global, fuera del repositorio)",
+      "tools": ["resolve-library-id", "query-docs"],
+      "added": "2026-10-29",
+      "docs": "docs/skills-mcp/context7-configuracion.md"
+    }
+  ],
   "registry": {
     "created_by": "skill-registry",
     "file": ".atl/skill-registry.md"
