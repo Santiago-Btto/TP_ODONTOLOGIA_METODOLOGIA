@@ -8,7 +8,7 @@
 
 **Repositorio:** https://github.com/Santiago-Btto/TP_ODONTOLOGIA_METODOLOGIA
 
-**Commit de entrega (artefactos de la Parte 2):** `99da07c09eb4ff5b9be06614c4f81cbcfb82a655`
+**Commit de entrega (artefactos de la Parte 2):** `2989b272d4bbe0806f2ece9be73f1bed7f712508`
 
 **Video de demostración (hasta 5 minutos, accesible):** **[PENDIENTE: incorporar el enlace real luego de grabar y verificar permisos]**
 
