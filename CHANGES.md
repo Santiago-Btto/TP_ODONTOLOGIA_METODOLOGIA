@@ -119,7 +119,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 ## FASE 1 — MVP (sección D del Discovery)
 
 ### [C-02] `consultar-agenda`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[ ]` preparado para implementar; artefactos de planificación en [`openspec/changes/consultar-agenda/`](openspec/changes/consultar-agenda/) (proposal, design, spec y tasks). Sin implementación, verificación ni archivado.
 - **Scope**: Caso de uso `ConsultarAgenda` y `GET /api/v1/agenda` con rango obligatorio y filtros opcionales `profesional_id` / `box_id`; resultados ordenados por inicio; inclusión por intersección con el rango. Tests: agenda diaria por profesional, semanal por box, filtro combinado, rango vacío y exclusión de turnos que no intersectan.
 - **Dependencias**: C-01b
 - **Governance**: BAJO
