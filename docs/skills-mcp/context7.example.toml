@@ -1,0 +1,5 @@
+# Ejemplo SIN secretos. Agregar esta tabla a ~/.codex/config.toml.
+# No copiar todo este archivo encima de una configuración existente.
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "--package=@upstash/context7-mcp@2.2.5", "--", "context7-mcp"]
