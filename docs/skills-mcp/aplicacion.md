@@ -22,7 +22,7 @@ La primera consulta al MCP preguntó cómo usar filtros **UUID** en FastAPI. La 
 |---|---|
 | `.agents/skills/revisar-escenarios-agenda/` | Fuente versionada y descubrible de la skill, con procedimiento y salida trazable. |
 | `.atl/skill-registry.md`, `AGENTS.md`, `CLAUDE.md` | Registrar cuándo usar la skill y Context7, qué entradas necesitan y cómo revisar resultados. |
-| `.active-orchestrator-state.json` | Mantener el estado de la fundación coherente: agrega la skill propia a `skills.installed` y registra Context7 como integración MCP. |
+| `.active-orchestrator-state.json` | Mantener el estado de la fundación coherente: agrega la skill propia a `skills.installed`, registra Context7 como integración MCP y declara `consultar-agenda` en `opsx.active` como change preparado. |
 | `README.md`, `docs/skills-mcp/context7-configuracion.md`, `context7.example.toml` | Reproducir la conexión MCP global sin guardar secretos. |
 | `openspec/changes/consultar-agenda/`, `CHANGES.md` | Preparar el change y mantener actualizado el roadmap sin declararlo ejecutado. |
 | `docs/skills-mcp/evidencias/`, este informe, `ENTREGA.md` | Documentar invocaciones, revisión crítica y datos de presentación. |
