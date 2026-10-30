@@ -126,8 +126,8 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `04_modelo_de_datos.md` §Turno, `06_funcionalidades.md` §US-002, `07_flujos_principales.md` §Flujo 1
 
 ### [C-03] `bloquear-disponibilidad`
-- **Estado**: `[ ]` pendiente
-- **Scope**: Tabla y repositorio `bloqueo_disponibilidad` (recurso profesional o box, intervalo válido, motivo opcional); `POST /api/v1/bloqueos`; la disponibilidad rechaza altas y reprogramaciones que intersecten un bloqueo. Error explícito si el bloqueo se solapa con un turno existente, sin inventar política. Tests: bloqueo de profesional, de box, bordes contiguos y alta rechazada por bloqueo.
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-10-30-bloquear-disponibilidad/` (148 tests en verde contra PostgreSQL real).
+- **Scope**: Tabla y repositorio `bloqueo_disponibilidad` (recurso profesional o box, intervalo válido, motivo opcional); `POST /api/v1/bloqueos`; el alta de turnos rechaza intervalos que intersecten un bloqueo. La misma regla queda disponible para la reprogramación de C-04, aún pendiente. Un bloqueo que intersecta un turno existente se rechaza con error explícito, sin modificarlo; la política clínica definitiva sigue abierta. Tests: ambos recursos, bordes contiguos, alta rechazada y carreras concurrentes.
 - **Dependencias**: C-01b
 - **Governance**: MEDIO
 - **Leer antes**: `05_reglas_de_negocio.md` §RN-DA-02 y RN-DI-04, `06_funcionalidades.md` §US-003, `10_preguntas_abiertas.md` (Media)
