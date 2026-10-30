@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT (C-08) · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** está implementado el alta de turnos sin solapamientos por profesional ni por box (change C-01b). Los intervalos son semiabiertos `[inicio, fin)`: un turno que empieza exactamente cuando termina otro se admite. PostgreSQL impone la misma regla con restricciones `EXCLUDE USING gist`, así que ni siquiera una escritura que eluda la aplicación puede generar una doble reserva.
+**Estado actual:** están implementados el alta de turnos sin solapamientos por profesional ni por box (change C-01b) y la consulta de agenda por rango temporal y filtros de recursos (change C-02). Los intervalos son semiabiertos `[inicio, fin)`: un turno que empieza exactamente cuando termina otro se admite y no se incluye cuando sólo toca el borde del rango consultado. PostgreSQL impone la misma regla con restricciones `EXCLUDE USING gist`, así que ni siquiera una escritura que eluda la aplicación puede generar una doble reserva.
 
 > La API todavía no tiene autenticación (llega con C-08): es sólo para desarrollo local. Todos los datos son ficticios.
 
@@ -86,6 +86,43 @@ curl -X POST http://localhost:8000/api/v1/turnos -H "content-type: application/j
 | `404` | Paciente, profesional, box o prestación inexistente | `recurso_inexistente` |
 | `409` | El profesional o el box ya tienen un turno activo que se solapa | `conflicto_profesional` / `conflicto_box` |
 | `422` | Fin no posterior al inicio, prestación con duración no positiva, fecha sin zona horaria o datos mal formados | `intervalo_invalido` / `duracion_invalida` |
+
+- Consulta de agenda (`GET /api/v1/agenda`):
+
+  Parámetros de consulta (`query`):
+  - `inicio` (obligatorio): fecha y hora con zona horaria explícita (ej. `2030-01-10T08:00:00-03:00`).
+  - `fin` (obligatorio): fecha y hora con zona horaria explícita, estrictamente posterior a `inicio` (ej. `2030-01-10T12:00:00-03:00`).
+  - `profesional_id` (opcional): identificador de texto del profesional (`1..64` caracteres, ej. `profesional-demo-001`).
+  - `box_id` (opcional): identificador de texto del box (`1..64` caracteres, ej. `box-demo-001`).
+
+```bash
+curl "http://localhost:8000/api/v1/agenda?inicio=2030-01-10T08:00:00-03:00&fin=2030-01-10T12:00:00-03:00&profesional_id=profesional-demo-001&box_id=box-demo-001"
+```
+
+  Respuesta `200` con coincidencias (ordenada por `inicio` ascendente, normalizada en UTC):
+
+```json
+[
+  {
+    "id": "turno-demo-001",
+    "profesional_id": "profesional-demo-001",
+    "box_id": "box-demo-001",
+    "inicio": "2030-01-10T12:00:00Z",
+    "fin": "2030-01-10T12:30:00Z"
+  }
+]
+```
+
+  Respuesta `200` sin coincidencias (rango vacío o filtro de ID de texto sin turnos):
+
+```json
+[]
+```
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `200` | Lista de turnos que intersectan `[inicio, fin)` (o `[]` si no hay coincidencias) | — |
+| `422` | Falta `inicio` o `fin`, fecha mal formada, fecha sin zona horaria o `fin <= inicio` | `intervalo_invalido` (cuando `fin <= inicio`) |
 
 Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas` y `uvicorn app.api.main:app --reload` desde `backend/`.
 

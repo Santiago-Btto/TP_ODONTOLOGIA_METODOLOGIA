@@ -119,6 +119,30 @@ class UnidadDeTrabajoSQLAlchemy:
         _confirmar_o_traducir(self._sesion, self._sesion.commit)
 
 
+class LectorAgendaSQLAlchemy:
+    def __init__(self, fabrica: sessionmaker[Session]) -> None:
+        self._fabrica = fabrica
+
+    def en_rango(
+        self,
+        inicio: datetime,
+        fin: datetime,
+        profesional_id: str | None = None,
+        box_id: str | None = None,
+    ) -> list[Turno]:
+        consulta = select(TurnoModelo).where(
+            TurnoModelo.inicio < fin,
+            TurnoModelo.fin > inicio,
+        )
+        if profesional_id is not None:
+            consulta = consulta.where(TurnoModelo.profesional_id == profesional_id)
+        if box_id is not None:
+            consulta = consulta.where(TurnoModelo.box_id == box_id)
+        consulta = consulta.order_by(TurnoModelo.inicio.asc())
+        with self._fabrica() as sesion:
+            return [_a_dominio(fila) for fila in sesion.scalars(consulta)]
+
+
 def _confirmar_o_traducir(sesion: Session, operacion: Callable[[], None]) -> None:
     try:
         operacion()

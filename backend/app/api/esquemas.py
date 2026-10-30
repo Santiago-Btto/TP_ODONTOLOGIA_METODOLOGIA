@@ -23,6 +23,14 @@ class TurnoSalida(BaseModel):
     estado: str
 
 
+class TurnoAgendaSalida(BaseModel):
+    id: str
+    profesional_id: str
+    box_id: str
+    inicio: AwareDatetime
+    fin: AwareDatetime
+
+
 class ErrorSalida(BaseModel):
     codigo: str
     detalle: str

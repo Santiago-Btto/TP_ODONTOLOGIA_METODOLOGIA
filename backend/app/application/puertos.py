@@ -31,6 +31,18 @@ class RepositorioHistoriales(Protocol):
     def agregar(self, historial: HistorialDeCambio) -> None: ...
 
 
+class LectorAgenda(Protocol):
+    def en_rango(
+        self,
+        inicio: datetime,
+        fin: datetime,
+        profesional_id: str | None = None,
+        box_id: str | None = None,
+    ) -> list[Turno]:
+        """Turnos que intersectan [inicio, fin), filtrados opcionalmente y ordenados por inicio ascendente."""
+        ...
+
+
 class UnidadDeTrabajo(Protocol):
     """Transacción: lo agregado sólo se persiste con `commit`; salir sin commit descarta todo."""
 

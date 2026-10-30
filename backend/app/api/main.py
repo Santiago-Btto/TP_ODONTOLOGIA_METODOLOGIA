@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api import turnos
+from app.api import agenda, turnos
 from app.domain.disponibilidad import ConflictoBoxError, ConflictoProfesionalError
 from app.domain.turnos import (
     DuracionInvalidaError,
@@ -45,6 +45,7 @@ def crear_app(fabrica: sessionmaker[Session] | None = None) -> FastAPI:
         lifespan=ciclo_de_vida,
     )
     app.include_router(turnos.router)
+    app.include_router(agenda.router)
 
     @app.exception_handler(ErrorDeDominio)
     async def error_de_dominio(_: Request, error: ErrorDeDominio) -> JSONResponse:

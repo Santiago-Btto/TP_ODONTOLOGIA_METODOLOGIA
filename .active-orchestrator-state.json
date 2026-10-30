@@ -231,12 +231,6 @@
         "verify": "40 passed"
       }
     ],
-    "active": [
-      {
-        "change": "consultar-agenda",
-        "path": "openspec/changes/consultar-agenda",
-        "status": "prepared (proposal, design, spec, tasks)"
-      }
-    ]
+    "active": []
   }
 }
