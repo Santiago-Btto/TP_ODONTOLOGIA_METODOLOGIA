@@ -9,6 +9,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.domain.bloqueos import BloqueoDeDisponibilidad
 from app.domain.disponibilidad import ConflictoBoxError, ConflictoProfesionalError
 from app.domain.turnos import (
     Box,
@@ -17,11 +18,13 @@ from app.domain.turnos import (
     Paciente,
     Prestacion,
     Profesional,
+    RecursoInexistenteError,
     Turno,
 )
 from app.infrastructure.modelos import (
     RESTRICCION_BOX,
     RESTRICCION_PROFESIONAL,
+    BloqueoModelo,
     BoxModelo,
     HistorialModelo,
     PacienteModelo,
@@ -50,6 +53,24 @@ class RecursosSQLAlchemy:
     def prestacion(self, id_: str) -> Prestacion | None:
         fila = self._sesion.get(PrestacionModelo, id_)
         return None if fila is None else Prestacion(fila.id, fila.nombre, fila.duracion_minutos)
+
+    def bloquear(self, profesional_id: str | None, box_id: str | None) -> None:
+        """Serializa turno y bloqueo del mismo recurso hasta commit/rollback.
+
+        Si hay dos recursos, el orden profesional→box es siempre el mismo.
+        """
+        if profesional_id is not None:
+            encontrado = self._sesion.scalar(
+                select(ProfesionalModelo.id).where(ProfesionalModelo.id == profesional_id).with_for_update()
+            )
+            if encontrado is None:
+                raise RecursoInexistenteError("profesional", profesional_id)
+        if box_id is not None:
+            encontrado = self._sesion.scalar(
+                select(BoxModelo.id).where(BoxModelo.id == box_id).with_for_update()
+            )
+            if encontrado is None:
+                raise RecursoInexistenteError("box", box_id)
 
 
 class TurnosSQLAlchemy:
@@ -84,6 +105,37 @@ class TurnosSQLAlchemy:
         # Si una restricción de exclusión lo rechaza, se informa como conflicto de dominio.
         _confirmar_o_traducir(self._sesion, self._sesion.flush)
 
+    def activos_del_recurso_que_se_solapan(
+        self, profesional_id: str | None, box_id: str | None, inicio: datetime, fin: datetime
+    ) -> list[Turno]:
+        recurso = (TurnoModelo.profesional_id == profesional_id if profesional_id is not None
+                   else TurnoModelo.box_id == box_id)
+        consulta = select(TurnoModelo).where(
+            TurnoModelo.estado != "cancelado", recurso,
+            TurnoModelo.inicio < fin, TurnoModelo.fin > inicio,
+        )
+        return [_a_dominio(fila) for fila in self._sesion.scalars(consulta)]
+
+
+class BloqueosSQLAlchemy:
+    def __init__(self, sesion: Session) -> None:
+        self._sesion = sesion
+
+    def que_se_solapan(
+        self, profesional_id: str, box_id: str, inicio: datetime, fin: datetime
+    ) -> list[BloqueoDeDisponibilidad]:
+        consulta = select(BloqueoModelo).where(
+            or_(BloqueoModelo.profesional_id == profesional_id, BloqueoModelo.box_id == box_id),
+            BloqueoModelo.inicio < fin, BloqueoModelo.fin > inicio,
+        )
+        return [_bloqueo_a_dominio(fila) for fila in self._sesion.scalars(consulta)]
+
+    def agregar(self, bloqueo: BloqueoDeDisponibilidad) -> None:
+        self._sesion.add(BloqueoModelo(
+            id=bloqueo.id, profesional_id=bloqueo.profesional_id, box_id=bloqueo.box_id,
+            inicio=bloqueo.inicio, fin=bloqueo.fin, motivo=bloqueo.motivo,
+        ))
+
 
 class HistorialesSQLAlchemy:
     def __init__(self, sesion: Session) -> None:
@@ -101,9 +153,12 @@ class UnidadDeTrabajoSQLAlchemy:
 
     def __enter__(self) -> Self:
         self._sesion = self._fabrica()
+        # Tras esperar FOR UPDATE, la próxima sentencia debe ver el commit ganador.
+        self._sesion.connection(execution_options={"isolation_level": "READ COMMITTED"})
         self.recursos = RecursosSQLAlchemy(self._sesion)
         self.turnos = TurnosSQLAlchemy(self._sesion)
         self.historiales = HistorialesSQLAlchemy(self._sesion)
+        self.bloqueos = BloqueosSQLAlchemy(self._sesion)
         return self
 
     def __exit__(
@@ -171,4 +226,15 @@ def _a_dominio(fila: TurnoModelo) -> Turno:
         inicio=fila.inicio,
         fin=fila.fin,
         estado=EstadoTurno(fila.estado),
+    )
+
+
+def _bloqueo_a_dominio(fila: BloqueoModelo) -> BloqueoDeDisponibilidad:
+    return BloqueoDeDisponibilidad(
+        id=fila.id,
+        profesional_id=fila.profesional_id,
+        box_id=fila.box_id,
+        inicio=fila.inicio,
+        fin=fila.fin,
+        motivo=fila.motivo,
     )

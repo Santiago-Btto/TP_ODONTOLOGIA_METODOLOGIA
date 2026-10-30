@@ -4,6 +4,7 @@ from datetime import datetime
 from types import TracebackType
 from typing import Protocol, Self
 
+from app.domain.bloqueos import BloqueoDeDisponibilidad
 from app.domain.turnos import Box, HistorialDeCambio, Paciente, Prestacion, Profesional, Turno
 
 
@@ -16,6 +17,10 @@ class RepositorioRecursos(Protocol):
 
     def prestacion(self, id_: str) -> Prestacion | None: ...
 
+    def bloquear(self, profesional_id: str | None, box_id: str | None) -> None:
+        """Bloquea las filas de recursos hasta el fin de la transacción."""
+        ...
+
 
 class RepositorioTurnos(Protocol):
     def activos_que_se_solapan(
@@ -25,6 +30,20 @@ class RepositorioTurnos(Protocol):
         ...
 
     def agregar(self, turno: Turno) -> None: ...
+
+    def activos_del_recurso_que_se_solapan(
+        self, profesional_id: str | None, box_id: str | None, inicio: datetime, fin: datetime
+    ) -> list[Turno]:
+        """Turnos activos del único recurso indicado que intersectan el intervalo."""
+        ...
+
+
+class RepositorioBloqueos(Protocol):
+    def que_se_solapan(
+        self, profesional_id: str, box_id: str, inicio: datetime, fin: datetime
+    ) -> list[BloqueoDeDisponibilidad]: ...
+
+    def agregar(self, bloqueo: BloqueoDeDisponibilidad) -> None: ...
 
 
 class RepositorioHistoriales(Protocol):
@@ -49,6 +68,7 @@ class UnidadDeTrabajo(Protocol):
     recursos: RepositorioRecursos
     turnos: RepositorioTurnos
     historiales: RepositorioHistoriales
+    bloqueos: RepositorioBloqueos
 
     def __enter__(self) -> Self: ...
 

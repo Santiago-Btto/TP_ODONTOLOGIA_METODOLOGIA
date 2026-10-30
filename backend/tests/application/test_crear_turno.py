@@ -7,7 +7,11 @@ from typing import Self
 import pytest
 
 from app.application.crear_turno import CrearTurno, SolicitudCrearTurno
-from app.domain.disponibilidad import ConflictoBoxError, ConflictoProfesionalError, se_solapan
+from app.domain.bloqueos import BloqueoDeDisponibilidad
+from app.domain.disponibilidad import (
+    ConflictoBloqueoBoxError, ConflictoBloqueoProfesionalError,
+    ConflictoBoxError, ConflictoProfesionalError, se_solapan,
+)
 from app.domain.turnos import (
     Box,
     DuracionInvalidaError,
@@ -35,6 +39,7 @@ class RecursosEnMemoria:
         self.profesionales = {p.id: p for p in (PROFESIONAL, PROFESIONAL_2)}
         self.boxes = {b.id: b for b in (BOX, BOX_2)}
         self.prestaciones = {p.id: p for p in prestaciones}
+        self.bloqueos_adquiridos: list[tuple[str | None, str | None]] = []
 
     def paciente(self, id_: str) -> Paciente | None:
         return self.pacientes.get(id_)
@@ -47,6 +52,9 @@ class RecursosEnMemoria:
 
     def prestacion(self, id_: str) -> Prestacion | None:
         return self.prestaciones.get(id_)
+
+    def bloquear(self, profesional_id: str | None, box_id: str | None) -> None:
+        self.bloqueos_adquiridos.append((profesional_id, box_id))
 
 
 class TurnosEnMemoria:
@@ -74,11 +82,22 @@ class HistorialesEnMemoria:
         self.pendientes.append(historial)
 
 
+class BloqueosEnMemoria:
+    def __init__(self) -> None:
+        self.confirmados: list[BloqueoDeDisponibilidad] = []
+
+    def que_se_solapan(self, profesional_id: str, box_id: str,
+                       inicio: datetime, fin: datetime) -> list[BloqueoDeDisponibilidad]:
+        return [b for b in self.confirmados if b.inicio < fin and inicio < b.fin and
+                (b.profesional_id == profesional_id or b.box_id == box_id)]
+
+
 class UnidadDeTrabajoEnMemoria:
     def __init__(self, prestaciones: list[Prestacion] | None = None) -> None:
         self.recursos = RecursosEnMemoria(prestaciones or [PRESTACION])
         self.turnos = TurnosEnMemoria()
         self.historiales = HistorialesEnMemoria()
+        self.bloqueos = BloqueosEnMemoria()
         self.commits = 0
 
     def __enter__(self) -> Self:
@@ -127,6 +146,12 @@ def assert_sin_cambios(uow: UnidadDeTrabajoEnMemoria, turnos_previos: list[Turno
     assert uow.turnos.confirmados == turnos_previos
     assert uow.historiales.confirmados == []
     assert uow.commits == 0
+
+
+def bloqueo(*, profesional_id: str | None = PROFESIONAL.id, box_id: str | None = None,
+            inicio: datetime | None = None, fin: datetime | None = None) -> BloqueoDeDisponibilidad:
+    return BloqueoDeDisponibilidad("bloqueo-demo-001", profesional_id, box_id,
+                                   inicio or hora(9, 0), fin or hora(10, 0))
 
 
 # Escenario: Alta exitosa
@@ -208,3 +233,32 @@ def test_recurso_inexistente_no_persiste_cambios(campo: str) -> None:
         caso.ejecutar(solicitud(**{campo: "no-existe-demo"}))
 
     assert_sin_cambios(uow, [])
+
+
+@pytest.mark.parametrize("recurso,esperado", [
+    ({"profesional_id": PROFESIONAL.id, "box_id": None}, ConflictoBloqueoProfesionalError),
+    ({"profesional_id": None, "box_id": BOX.id}, ConflictoBloqueoBoxError),
+])
+def test_alta_intersectante_con_bloqueo_no_crea_turno_ni_historial(
+    recurso: dict[str, str | None], esperado: type[Exception]
+) -> None:
+    caso, uow = preparar()
+    uow.bloqueos.confirmados.append(bloqueo(**recurso))
+    with pytest.raises(esperado):
+        caso.ejecutar(solicitud())
+    assert_sin_cambios(uow, [])
+
+
+@pytest.mark.parametrize("inicio,fin", [(hora(8, 0), hora(9, 0)), (hora(9, 30), hora(10, 0))])
+def test_alta_contigua_a_bloqueo_conserva_historial_unico(inicio: datetime, fin: datetime) -> None:
+    caso, uow = preparar()
+    uow.bloqueos.confirmados.append(bloqueo(inicio=inicio, fin=fin))
+    creado = caso.ejecutar(solicitud())
+    assert uow.historiales.confirmados == [HistorialDeCambio(creado.id, TipoCambio.CREADO, AHORA)]
+    assert uow.commits == 1
+
+
+def test_alta_toma_bloqueos_de_profesional_y_box_antes_de_leer_disponibilidad() -> None:
+    caso, uow = preparar()
+    creado = caso.ejecutar(solicitud())
+    assert uow.recursos.bloqueos_adquiridos == [(creado.profesional_id, creado.box_id)]

@@ -8,8 +8,10 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Identity,
+    Index,
     Integer,
     String,
+    Text,
     event,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -51,6 +53,27 @@ class PrestacionModelo(Base):
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     nombre: Mapped[str] = mapped_column(String(200))
     duracion_minutos: Mapped[int] = mapped_column(Integer)
+
+
+class BloqueoModelo(Base):
+    __tablename__ = "bloqueos_disponibilidad"
+    __table_args__ = (
+        CheckConstraint("(profesional_id IS NULL) <> (box_id IS NULL)", name="bloqueos_un_recurso"),
+        CheckConstraint("fin > inicio", name="bloqueos_fin_posterior_al_inicio"),
+        Index("ix_bloqueos_profesional_intervalo", "profesional_id", "inicio", "fin"),
+        Index("ix_bloqueos_box_intervalo", "box_id", "inicio", "fin"),
+    )
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    profesional_id: Mapped[str | None] = mapped_column(
+        ForeignKey("profesionales.id", ondelete="RESTRICT", onupdate="RESTRICT")
+    )
+    box_id: Mapped[str | None] = mapped_column(
+        ForeignKey("boxes.id", ondelete="RESTRICT", onupdate="RESTRICT")
+    )
+    inicio: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    fin: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    motivo: Mapped[str | None] = mapped_column(Text)
 
 
 class TurnoModelo(Base):

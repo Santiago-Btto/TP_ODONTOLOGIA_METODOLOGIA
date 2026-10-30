@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.application.puertos import UnidadDeTrabajo
-from app.domain.disponibilidad import verificar_disponibilidad
+from app.domain.disponibilidad import verificar_bloqueos_de_turno, verificar_disponibilidad
 from app.domain.turnos import (
     HistorialDeCambio,
     Prestacion,
@@ -43,10 +43,15 @@ class CrearTurno:
                 inicio=solicitud.inicio,
                 fin=solicitud.fin if solicitud.fin is not None else fin_por_prestacion,
             )
+            uow.recursos.bloquear(candidato.profesional_id, candidato.box_id)
             activos = uow.turnos.activos_que_se_solapan(
                 candidato.profesional_id, candidato.box_id, candidato.inicio, candidato.fin
             )
             verificar_disponibilidad(candidato, activos)
+            bloqueos = uow.bloqueos.que_se_solapan(
+                candidato.profesional_id, candidato.box_id, candidato.inicio, candidato.fin
+            )
+            verificar_bloqueos_de_turno(candidato, bloqueos)
 
             uow.turnos.agregar(candidato)
             uow.historiales.agregar(HistorialDeCambio(candidato.id, TipoCambio.CREADO, self._reloj()))

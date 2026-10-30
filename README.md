@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT (C-08) · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos por profesional ni por box (change C-01b) y la consulta de agenda por rango temporal y filtros de recursos (change C-02). Los intervalos son semiabiertos `[inicio, fin)`: un turno que empieza exactamente cuando termina otro se admite y no se incluye cuando sólo toca el borde del rango consultado. PostgreSQL impone la misma regla con restricciones `EXCLUDE USING gist`, así que ni siquiera una escritura que eluda la aplicación puede generar una doble reserva.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02) y el bloqueo de disponibilidad de un profesional o un box (C-03). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > La API todavía no tiene autenticación (llega con C-08): es sólo para desarrollo local. Todos los datos son ficticios.
 
@@ -60,7 +60,7 @@ TEST_DATABASE_URL="postgresql+psycopg://USUARIO:CLAVE@localhost:5432/turnos_test
 
 En PowerShell: `$env:TEST_DATABASE_URL = "postgresql+psycopg://..."; .venv\Scripts\python -m pytest -v`.
 
-Resultado esperado: `40 passed`.
+Resultado esperado: la suite completa en verde. Para C-03 se verificó además la carrera concurrente entre turno y bloqueo contra PostgreSQL real.
 
 ## Levantar la API
 
@@ -84,7 +84,7 @@ curl -X POST http://localhost:8000/api/v1/turnos -H "content-type: application/j
 |---|---|---|
 | `201` | Turno creado | — |
 | `404` | Paciente, profesional, box o prestación inexistente | `recurso_inexistente` |
-| `409` | El profesional o el box ya tienen un turno activo que se solapa | `conflicto_profesional` / `conflicto_box` |
+| `409` | Un turno o bloqueo ocupa el profesional o el box | `conflicto_profesional` / `conflicto_box` / `conflicto_bloqueo_profesional` / `conflicto_bloqueo_box` |
 | `422` | Fin no posterior al inicio, prestación con duración no positiva, fecha sin zona horaria o datos mal formados | `intervalo_invalido` / `duracion_invalida` |
 
 - Consulta de agenda (`GET /api/v1/agenda`):
@@ -123,6 +123,23 @@ curl "http://localhost:8000/api/v1/agenda?inicio=2030-01-10T08:00:00-03:00&fin=2
 |---|---|---|
 | `200` | Lista de turnos que intersectan `[inicio, fin)` (o `[]` si no hay coincidencias) | — |
 | `422` | Falta `inicio` o `fin`, fecha mal formada, fecha sin zona horaria o `fin <= inicio` | `intervalo_invalido` (cuando `fin <= inicio`) |
+
+- Bloquear disponibilidad (`POST /api/v1/bloqueos`): indicar **exactamente uno** entre `profesional_id` y `box_id`. El motivo es opcional; las fechas deben incluir zona horaria y `fin > inicio`.
+
+```bash
+curl -X POST http://localhost:8000/api/v1/bloqueos -H "content-type: application/json" -d '{"profesional_id":"profesional-demo-001","inicio":"2030-01-10T09:00:00-03:00","fin":"2030-01-10T10:00:00-03:00","motivo":"Reunión Demo"}'
+```
+
+El resultado `201` incluye el ID del bloqueo, el recurso, el intervalo en UTC y el motivo. Se acepta un segundo bloqueo que se superponga al primero: la KB no define un conflicto entre bloqueos. Un bloqueo que cruce un turno activo del mismo recurso se rechaza sin cambiar el turno ni su historial.
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `201` | Bloqueo registrado | — |
+| `404` | Profesional o box inexistente | `recurso_inexistente` |
+| `409` | Un turno activo cruza el bloqueo | `conflicto_turno_existente` |
+| `422` | Recurso omitido o doble, fecha inválida/sin zona, o `fin <= inicio` | `detail` de validación de FastAPI |
+
+La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. La reprogramación llegará con C-04 y los permisos con C-08.
 
 Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas` y `uvicorn app.api.main:app --reload` desde `backend/`.
 
