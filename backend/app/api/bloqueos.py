@@ -7,10 +7,12 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, Request, status
 
 from app.api.esquemas import BloqueoEntrada, BloqueoSalida, ErrorSalida
+from app.api.seguridad import actor_actual, requiere
 from app.application.crear_bloqueo import CrearBloqueo, SolicitudCrearBloqueo
+from app.domain.autorizacion import Permiso
 from app.infrastructure.unidad_de_trabajo import UnidadDeTrabajoSQLAlchemy
 
-router = APIRouter(prefix="/api/v1/bloqueos", tags=["bloqueos"])
+router = APIRouter(prefix="/api/v1/bloqueos", tags=["bloqueos"], dependencies=[Depends(actor_actual)])
 
 
 def caso_crear_bloqueo(request: Request) -> CrearBloqueo:
@@ -27,7 +29,11 @@ def caso_crear_bloqueo(request: Request) -> CrearBloqueo:
         422: {"description": "Error de validación de entrada (`detail` de FastAPI)."},
     },
 )
-def crear_bloqueo(entrada: BloqueoEntrada, caso: Annotated[CrearBloqueo, Depends(caso_crear_bloqueo)]) -> BloqueoSalida:
+def crear_bloqueo(
+    entrada: BloqueoEntrada,
+    caso: Annotated[CrearBloqueo, Depends(caso_crear_bloqueo)],
+    _: Annotated[object, Depends(requiere(Permiso.CREAR_BLOQUEO))],
+) -> BloqueoSalida:
     creado = caso.ejecutar(SolicitudCrearBloqueo(
         id=str(uuid4()),
         profesional_id=entrada.profesional_id,

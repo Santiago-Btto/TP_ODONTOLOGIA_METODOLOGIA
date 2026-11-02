@@ -77,6 +77,24 @@ class BloqueoModelo(Base):
     motivo: Mapped[str | None] = mapped_column(Text)
 
 
+class UsuarioModelo(Base):
+    """Personal de la clínica (C-08). Sólo se guarda el hash Argon2id de la contraseña."""
+
+    __tablename__ = "usuarios"
+    __table_args__ = (
+        CheckConstraint("rol IN ('recepcion', 'odontologo', 'responsable')", name="usuarios_rol_valido"),
+    )
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    nombre_usuario: Mapped[str] = mapped_column(String(64), unique=True)
+    hash_contrasena: Mapped[str] = mapped_column(String(255))
+    rol: Mapped[str] = mapped_column(String(20))
+    profesional_id: Mapped[str | None] = mapped_column(
+        ForeignKey("profesionales.id", ondelete="RESTRICT", onupdate="RESTRICT")
+    )
+    activo: Mapped[bool] = mapped_column(default=True)
+
+
 class TurnoModelo(Base):
     __tablename__ = "turnos"
     __table_args__ = (CheckConstraint("fin > inicio", name="turnos_fin_posterior_al_inicio"),)
@@ -101,6 +119,10 @@ class HistorialModelo(Base):
     # Resumen anterior/posterior de una reprogramación (C-04); nulos en los demás eventos.
     antes: Mapped[dict[str, str] | None] = mapped_column(JSONB)
     despues: Mapped[dict[str, str] | None] = mapped_column(JSONB)
+    # Usuario autenticado que hizo el cambio (C-08); nulo en eventos previos o ajenos a la API.
+    actor_id: Mapped[str | None] = mapped_column(
+        ForeignKey("usuarios.id", ondelete="RESTRICT", onupdate="RESTRICT"), index=True
+    )
 
 
 event.listen(Base.metadata, "before_create", DDL("CREATE EXTENSION IF NOT EXISTS btree_gist"))

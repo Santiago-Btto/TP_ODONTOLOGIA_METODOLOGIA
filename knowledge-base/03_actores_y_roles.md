@@ -23,4 +23,4 @@ La autorización es una proyección propuesta, no un requisito validado con clí
 
 ## Rutas públicas
 
-No hay rutas públicas. La API FastAPI (`/api/v1`) es interna: hasta C-08 sólo corre en local y desde C-08 exige JWT. La agenda web React (C-15) es para personal de la clínica, no para pacientes. Las futuras reservas por web, enlace, WhatsApp o bot deberán diseñarse con autenticación/autorización y pasar por las reglas del dominio.
+No hay rutas públicas de agenda. La API FastAPI (`/api/v1`) es interna y, desde C-08, exige JWT en todas sus rutas salvo la emisión de token (`/api/v1/auth/token`); la matriz de arriba se aplica en `backend/app/domain/autorizacion.py`, con el odontólogo/a limitado a la agenda del profesional vinculado a su usuario. La agenda web React (C-15) es para personal de la clínica, no para pacientes. Las futuras reservas por web, enlace, WhatsApp o bot deberán diseñarse con autenticación/autorización y pasar por las reglas del dominio.

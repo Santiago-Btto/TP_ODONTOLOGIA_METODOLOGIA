@@ -1,23 +1,14 @@
 """Escenarios de `Exponer la consulta por HTTP` (`GET /api/v1/agenda`) contra PostgreSQL real."""
 
-from collections.abc import Iterator
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api.main import crear_app
 from app.infrastructure.modelos import HistorialModelo, TurnoModelo
 
 URL_TURNOS = "/api/v1/turnos"
 URL_AGENDA = "/api/v1/agenda"
-
-
-@pytest.fixture
-def cliente(fabrica: sessionmaker[Session]) -> Iterator[TestClient]:
-    with TestClient(crear_app(fabrica)) as cliente:
-        yield cliente
 
 
 def cuerpo_turno(**cambios: str) -> dict[str, str]:

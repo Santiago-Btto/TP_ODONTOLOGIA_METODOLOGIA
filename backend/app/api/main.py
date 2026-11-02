@@ -6,7 +6,14 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api import agenda, bloqueos, turnos
+from app.api import agenda, auth, bloqueos, turnos
+from app.application.autenticacion import (
+    CredencialesInvalidasError,
+    NoAutenticadoError,
+    TokenExpiradoError,
+    TokenInvalidoError,
+)
+from app.domain.autorizacion import AccesoDenegadoError
 from app.domain.bloqueos import (
     FechaSinZonaError, IntervaloBloqueoInvalidoError, RecursoDeBloqueoInvalidoError,
 )
@@ -26,8 +33,14 @@ from app.domain.turnos import (
     TransicionInvalidaError,
 )
 from app.infrastructure.db import crear_esquema, crear_fabrica_de_sesiones, crear_motor, url_de_base
+from app.infrastructure.seguridad import ConfiguracionSeguridad, EmisorJWT, HasherArgon2
 
 ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
+    NoAutenticadoError: status.HTTP_401_UNAUTHORIZED,
+    TokenInvalidoError: status.HTTP_401_UNAUTHORIZED,
+    TokenExpiradoError: status.HTTP_401_UNAUTHORIZED,
+    CredencialesInvalidasError: status.HTTP_401_UNAUTHORIZED,
+    AccesoDenegadoError: status.HTTP_403_FORBIDDEN,
     RecursoInexistenteError: status.HTTP_404_NOT_FOUND,
     ConflictoProfesionalError: status.HTTP_409_CONFLICT,
     ConflictoBoxError: status.HTTP_409_CONFLICT,
@@ -44,11 +57,20 @@ ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
 }
 
 
-def crear_app(fabrica: sessionmaker[Session] | None = None) -> FastAPI:
-    """Sin `fabrica`, se conecta a DATABASE_URL y crea el esquema al iniciar."""
+def crear_app(
+    fabrica: sessionmaker[Session] | None = None,
+    seguridad: ConfiguracionSeguridad | None = None,
+) -> FastAPI:
+    """Sin `fabrica`, se conecta a DATABASE_URL y crea el esquema al iniciar.
+
+    Sin `seguridad`, lee JWT_SECRET / JWT_EXPIRA_MINUTOS del entorno: si falta el secreto, la API no inicia.
+    """
 
     @asynccontextmanager
     async def ciclo_de_vida(app: FastAPI) -> AsyncIterator[None]:
+        configuracion = seguridad if seguridad is not None else ConfiguracionSeguridad.desde_entorno()
+        app.state.emisor = EmisorJWT(configuracion)
+        app.state.hasher = HasherArgon2()
         if fabrica is None:
             motor = crear_motor(url_de_base())
             crear_esquema(motor)
@@ -59,10 +81,14 @@ def crear_app(fabrica: sessionmaker[Session] | None = None) -> FastAPI:
 
     app = FastAPI(
         title="Turnos odontología",
-        version="0.2.0",
-        description="API interna de agenda. Sin autenticación hasta C-08: sólo para desarrollo local.",
+        version="0.3.0",
+        description=(
+            "API interna de agenda para el personal de la clínica. Todas las rutas `/api/v1` "
+            "(salvo `/api/v1/auth/token`) exigen `Authorization: Bearer <token>` (C-08)."
+        ),
         lifespan=ciclo_de_vida,
     )
+    app.include_router(auth.router)
     app.include_router(turnos.router)
     app.include_router(agenda.router)
     app.include_router(bloqueos.router)
@@ -70,7 +96,10 @@ def crear_app(fabrica: sessionmaker[Session] | None = None) -> FastAPI:
     @app.exception_handler(ErrorDeDominio)
     async def error_de_dominio(_: Request, error: ErrorDeDominio) -> JSONResponse:
         estado = ESTADO_HTTP.get(type(error), status.HTTP_400_BAD_REQUEST)
-        return JSONResponse(status_code=estado, content={"codigo": error.codigo, "detalle": str(error)})
+        encabezados = {"WWW-Authenticate": "Bearer"} if estado == status.HTTP_401_UNAUTHORIZED else None
+        return JSONResponse(
+            status_code=estado, content={"codigo": error.codigo, "detalle": str(error)}, headers=encabezados
+        )
 
     @app.get("/health", tags=["operación"])
     def salud(request: Request) -> JSONResponse:

@@ -262,3 +262,12 @@ def test_alta_toma_bloqueos_de_profesional_y_box_antes_de_leer_disponibilidad() 
     caso, uow = preparar()
     creado = caso.ejecutar(solicitud())
     assert uow.recursos.bloqueos_adquiridos == [(creado.profesional_id, creado.box_id)]
+
+
+def test_alta_registra_el_actor_en_el_historial() -> None:
+    caso, uow = preparar()
+
+    creado = caso.ejecutar(solicitud(actor_id="usuario-demo-001"))
+
+    assert uow.historiales.confirmados == [
+        HistorialDeCambio(creado.id, TipoCambio.CREADO, AHORA, actor_id="usuario-demo-001")]

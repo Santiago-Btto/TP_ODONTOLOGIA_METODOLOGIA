@@ -2,11 +2,11 @@
 
 Sistema de turnos y agenda para consultorios odontológicos (mercado argentino), construido con Spec-Driven Development (OpenSpec) y Active Stack.
 
-**Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT (C-08) · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
+**Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04) y la confirmación y cancelación de turnos (C-05). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05) y la autenticación con JWT y roles (C-08). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
-> La API todavía no tiene autenticación (llega con C-08): es sólo para desarrollo local. Todos los datos son ficticios.
+> Todas las rutas `/api/v1` exigen un token JWT (C-08). La API sigue siendo interna: rate limiting, CORS y exposición pública llegan con C-09. Todos los datos son ficticios.
 
 ## Estructura
 
@@ -64,20 +64,54 @@ Resultado esperado: la suite completa en verde. Para C-03 se verificó además l
 
 ## Levantar la API
 
-```bash
-docker compose up -d
-```
+1. Generar un secreto propio para firmar los JWT y dejarlo en un `.env` en la raíz (está en `.gitignore`; nunca se versiona):
 
 ```bash
-docker compose run --rm api python -m app.infrastructure.semillas
+echo "JWT_SECRET=$(python -c 'import secrets; print(secrets.token_urlsafe(48))')" > .env
 ```
+
+2. Levantar los servicios, cargar las semillas ficticias y crear un usuario del personal (la contraseña se pide por consola, mínimo 12 caracteres; roles `recepcion`, `responsable` u `odontologo`):
+
+```bash
+docker compose up -d
+docker compose run --rm api python -m app.infrastructure.semillas
+docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre recepcion.demo --rol recepcion
+# Odontólogo/a vinculado a su profesional:
+# docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre odontologo.demo --rol odontologo --profesional-id profesional-demo-001
+```
+
+> Si la base local se creó antes de C-04/C-08, recrearla (`docker compose down -v`): faltan columnas del historial y no hay migraciones hasta C-07.
+
+3. Obtener un token (OAuth2 password flow) y usarlo en cada request:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/token -d "username=recepcion.demo" -d "password=TU-CONTRASEÑA"
+# → {"access_token":"…","token_type":"bearer","expires_in":1800}
+export TOKEN="…"
+```
+
+Todos los ejemplos de abajo llevan `-H "Authorization: Bearer $TOKEN"`. En http://localhost:8000/docs el botón **Authorize** hace el login.
+
+| Rol | Puede |
+|---|---|
+| `recepcion`, `responsable` | Crear, reprogramar, confirmar y cancelar turnos; crear bloqueos; consultar cualquier agenda |
+| `odontologo` | Sólo consultar su propia agenda (`profesional_id` = el profesional vinculado a su usuario) |
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `401` | Sin token, token mal firmado o con algoritmo no permitido, usuario borrado o desactivado | `no_autenticado` / `token_invalido` |
+| `401` | Token vencido (pedir otro) | `token_expirado` |
+| `401` | Login con usuario o contraseña incorrectos (o usuario inactivo) | `credenciales_invalidas` |
+| `403` | El rol no permite la operación | `acceso_denegado` |
+
+`GET /api/v1/auth/yo` devuelve id, usuario, rol y profesional vinculado del token. `/health` y la documentación OpenAPI siguen públicas para desarrollo local. Cada evento del historial de turnos registra el usuario que hizo el cambio.
 
 - Documentación interactiva: http://localhost:8000/docs
 - Salud: `GET http://localhost:8000/health`
 - Alta de turno:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/turnos -H "content-type: application/json" -d '{"paciente_id":"paciente-demo-001","profesional_id":"profesional-demo-001","box_id":"box-demo-001","prestacion_id":"prestacion-demo-001","inicio":"2030-01-10T09:00:00-03:00"}'
+curl -X POST http://localhost:8000/api/v1/turnos -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"paciente_id":"paciente-demo-001","profesional_id":"profesional-demo-001","box_id":"box-demo-001","prestacion_id":"prestacion-demo-001","inicio":"2030-01-10T09:00:00-03:00"}'
 ```
 
 | Respuesta | Cuándo | `codigo` |
@@ -96,7 +130,7 @@ curl -X POST http://localhost:8000/api/v1/turnos -H "content-type: application/j
   - `box_id` (opcional): identificador de texto del box (`1..64` caracteres, ej. `box-demo-001`).
 
 ```bash
-curl "http://localhost:8000/api/v1/agenda?inicio=2030-01-10T08:00:00-03:00&fin=2030-01-10T12:00:00-03:00&profesional_id=profesional-demo-001&box_id=box-demo-001"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/v1/agenda?inicio=2030-01-10T08:00:00-03:00&fin=2030-01-10T12:00:00-03:00&profesional_id=profesional-demo-001&box_id=box-demo-001"
 ```
 
   Respuesta `200` con coincidencias (ordenada por `inicio` ascendente, normalizada en UTC):
@@ -127,7 +161,7 @@ curl "http://localhost:8000/api/v1/agenda?inicio=2030-01-10T08:00:00-03:00&fin=2
 - Bloquear disponibilidad (`POST /api/v1/bloqueos`): indicar **exactamente uno** entre `profesional_id` y `box_id`. El motivo es opcional; las fechas deben incluir zona horaria y `fin > inicio`.
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/bloqueos -H "content-type: application/json" -d '{"profesional_id":"profesional-demo-001","inicio":"2030-01-10T09:00:00-03:00","fin":"2030-01-10T10:00:00-03:00","motivo":"Reunión Demo"}'
+curl -X POST http://localhost:8000/api/v1/bloqueos -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"profesional_id":"profesional-demo-001","inicio":"2030-01-10T09:00:00-03:00","fin":"2030-01-10T10:00:00-03:00","motivo":"Reunión Demo"}'
 ```
 
 El resultado `201` incluye el ID del bloqueo, el recurso, el intervalo en UTC y el motivo. Se acepta un segundo bloqueo que se superponga al primero: la KB no define un conflicto entre bloqueos. Un bloqueo que cruce un turno activo del mismo recurso se rechaza sin cambiar el turno ni su historial.
@@ -139,13 +173,13 @@ El resultado `201` incluye el ID del bloqueo, el recurso, el intervalo en UTC y 
 | `409` | Un turno activo cruza el bloqueo | `conflicto_turno_existente` |
 | `422` | Recurso omitido o doble, fecha inválida/sin zona, o `fin <= inicio` | `detail` de validación de FastAPI |
 
-La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. Los permisos llegan con C-08.
+La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. Los bloqueos exigen el rol `recepcion` o `responsable`.
 
 - Confirmar o cancelar un turno (`POST /api/v1/turnos/{turno_id}/confirmar` y `POST /api/v1/turnos/{turno_id}/cancelar`, sin cuerpo):
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/confirmar
-curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/cancelar
+curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/confirmar -H "Authorization: Bearer $TOKEN"
+curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/cancelar -H "Authorization: Bearer $TOKEN"
 ```
 
 Transiciones permitidas: `programado → confirmado`, `programado → cancelado` y `confirmado → cancelado`. Cada una registra su evento (`confirmado` / `cancelado`) en el historial dentro de la misma transacción. Un turno cancelado libera su intervalo: se puede volver a reservar o bloquear. Un turno confirmado sigue ocupándolo. La agenda informa el `estado` de cada turno y sigue mostrando los cancelados.
@@ -162,7 +196,7 @@ La ventana de cancelación y la confirmación de turnos vencidos siguen como pre
 - Reprogramar un turno (`PATCH /api/v1/turnos/{turno_id}`): indicar al menos uno entre `inicio`, `fin`, `profesional_id` y `box_id`. Lo omitido se conserva; un `inicio` sin `fin` conserva la duración del turno.
 
 ```bash
-curl -X PATCH http://localhost:8000/api/v1/turnos/ID-DEL-TURNO -H "content-type: application/json" -d '{"inicio":"2030-01-10T11:00:00-03:00","box_id":"box-demo-002"}'
+curl -X PATCH http://localhost:8000/api/v1/turnos/ID-DEL-TURNO -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"inicio":"2030-01-10T11:00:00-03:00","box_id":"box-demo-002"}'
 ```
 
 El nuevo intervalo se valida contra los demás turnos activos y los bloqueos del profesional y box de destino; el propio turno no cuenta como conflicto. Si algo falla, el turno queda exactamente como estaba. Si es válido, el intervalo anterior se libera y el historial registra `reprogramado` con el resumen anterior y posterior. El estado (`programado` / `confirmado`) se conserva.
@@ -174,14 +208,12 @@ El nuevo intervalo se valida contra los demás turnos activos y los bloqueos del
 | `409` | Conflicto en el destino o turno cancelado | `conflicto_profesional` / `conflicto_box` / `conflicto_bloqueo_profesional` / `conflicto_bloqueo_box` / `transicion_invalida` |
 | `422` | `fin <= inicio`, ningún valor cambia, cuerpo vacío, campo desconocido o fecha sin zona | `intervalo_invalido` / `reprogramacion_sin_cambios` / `detail` de FastAPI |
 
-> C-04 agregó las columnas `antes` y `despues` a `historial_cambios`. Hasta que existan migraciones (C-07), una base local creada antes debe recrearse: `docker compose down -v` y volver a levantarla.
-
-Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas` y `uvicorn app.api.main:app --reload` desde `backend/`.
+Sin Docker: definir `DATABASE_URL` y `JWT_SECRET` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas`, crear un usuario con `python -m app.infrastructure.crear_usuario …` y `uvicorn app.api.main:app --reload` desde `backend/`.
 
 ## Proceso (SDD / OPSX)
 
 - Discovery: [docs/discovery/informe-discovery.md](docs/discovery/informe-discovery.md) (y su PDF).
-- Spec vigente: [openspec/specs/creacion-de-turnos/spec.md](openspec/specs/creacion-de-turnos/spec.md).
+- Specs vigentes: [openspec/specs/](openspec/specs/) (creación, agenda, bloqueos, ciclo de vida, reprogramación, autenticación).
 - Changes archivados: [openspec/changes/archive/](openspec/changes/archive/).
 - Evidencias de entrega: [docs/evidencias/](docs/evidencias/).
 

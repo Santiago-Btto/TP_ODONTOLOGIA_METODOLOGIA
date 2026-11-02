@@ -184,6 +184,7 @@ class HistorialDeCambio:
     ocurrido_en: datetime
     antes: ResumenTurno | None = None
     despues: ResumenTurno | None = None
+    actor_id: str | None = None
 
 
 def calcular_fin(inicio: datetime, prestacion: Prestacion) -> datetime:

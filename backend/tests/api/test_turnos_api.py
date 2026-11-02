@@ -1,20 +1,8 @@
 """Escenarios de `Exponer el alta por API HTTP` contra PostgreSQL real."""
 
-from collections.abc import Iterator
-
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session, sessionmaker
-
-from app.api.main import crear_app
 
 URL = "/api/v1/turnos"
-
-
-@pytest.fixture
-def cliente(fabrica: sessionmaker[Session]) -> Iterator[TestClient]:
-    with TestClient(crear_app(fabrica)) as cliente:
-        yield cliente
 
 
 def cuerpo(**cambios: str) -> dict[str, str]:

@@ -68,6 +68,20 @@ Errores: `no_autenticado`, `token_invalido`, `token_expirado`, `credenciales_inv
 - [Esquema local previo] → `usuarios` se crea con `create_all`, pero `historial_cambios.actor_id` requiere recrear la base local hasta C-07.
 - [OpenAPI pública] → aceptable en local; C-09 decide su exposición.
 
+## Revisión de seguridad (security-best-practices, FastAPI)
+
+Revisión hecha sobre el diff de C-08 antes de archivar:
+
+| Regla | Resultado |
+|---|---|
+| FASTAPI-AUTH-003: contraseñas con hash lento | Cumple: Argon2id (`pwdlib`); el hash nunca sale en respuestas (`UsuarioSalida`). |
+| FASTAPI-AUTH-004: JWT estricto | Cumple: `algorithms=["HS256"]`, reclamos obligatorios; pruebas con `none`, HS512, otra firma, expirado. El payload no lleva secretos ni rol. |
+| Tokens en `Authorization`, no en query | Cumple: `OAuth2PasswordBearer`; el login usa cuerpo de formulario. |
+| Secretos fuera del repositorio | Cumple: `JWT_SECRET` por entorno con mínimo de largo; `.env.example` vacío; los tests generan secreto y contraseña aleatorios; búsqueda en el diff sin hallazgos. |
+| Enumeración de usuarios | Mitigado: mismo `401 credenciales_invalidas` y verificación contra hash ficticio. |
+| Rate limiting del login, CORS, exposición de `/docs` | **Pendiente (C-09)**: aceptable mientras la API sea interna; documentado en README y KB. |
+| Revocación de tokens | **Pendiente**: vida corta (30 min) y desactivación efectiva en el siguiente request. |
+
 ## Migration Plan
 
 Generar `JWT_SECRET` y exportarlo antes de levantar la API; recrear la base local (`docker compose down -v`) por la columna nueva; crear al menos un usuario con el comando. Los clientes deben obtener un token y enviarlo en `Authorization: Bearer`. Revertir implica retirar las dependencias de seguridad; `usuarios` y `actor_id` pueden quedar sin efecto.

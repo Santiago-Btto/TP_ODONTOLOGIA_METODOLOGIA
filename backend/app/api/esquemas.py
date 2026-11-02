@@ -78,6 +78,21 @@ class BloqueoSalida(BaseModel):
     motivo: str | None
 
 
+class TokenSalida(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: int
+
+
+class UsuarioSalida(BaseModel):
+    """Identidad del usuario autenticado; nunca incluye el hash de la contraseña."""
+
+    id: str
+    nombre_usuario: str
+    rol: str
+    profesional_id: str | None
+
+
 class ErrorSalida(BaseModel):
     codigo: str
     detalle: str

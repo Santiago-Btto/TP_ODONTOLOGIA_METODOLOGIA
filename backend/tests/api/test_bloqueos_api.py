@@ -1,22 +1,13 @@
 """Contrato HTTP de bloqueos y alta de turnos, probado con PostgreSQL real."""
 
-from collections.abc import Iterator
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api.main import crear_app
 from app.infrastructure.modelos import BloqueoModelo, HistorialModelo, TurnoModelo
 
 URL = "/api/v1/bloqueos"
-
-
-@pytest.fixture
-def cliente(fabrica: sessionmaker[Session]) -> Iterator[TestClient]:
-    with TestClient(crear_app(fabrica)) as cliente:
-        yield cliente
 
 
 def cuerpo(**cambios: object) -> dict[str, object]:

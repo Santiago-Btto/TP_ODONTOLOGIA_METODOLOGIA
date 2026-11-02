@@ -38,8 +38,8 @@ turnos-odontologia/
 
 ## Seguridad
 
-- **Autenticación:** JWT bearer (C-08). Hasta entonces la API sólo corre en local y no se despliega.
-- **Autorización:** la matriz RBAC es propuesta y debe validarse antes de exponer la API a usuarios.
+- **Autenticación:** JWT bearer HS256 (C-08, implementado): `POST /api/v1/auth/token` (OAuth2 password flow), contraseñas con Argon2id, tokens de vida corta con sólo `sub`/`iat`/`exp`; el rol se lee de la base en cada request. Todas las rutas `/api/v1` salvo la emisión de token lo exigen.
+- **Autorización:** la matriz RBAC propuesta se aplica desde `backend/app/domain/autorizacion.py`; sigue pendiente de validación antes de exponer la API a usuarios. Rate limiting, CORS y revocación quedan para C-09.
 - **Validación de input:** Pydantic valida forma en el borde HTTP; el dominio vuelve a imponer invariantes.
 - **Datos:** sólo datos ficticios en desarrollo, pruebas y semillas; no incorporar PII o información clínica real.
 - **Secrets management:** credenciales por variables de entorno; `.env` ignorado por Git y `.env.example` sin valores reales. Las credenciales de Docker Compose son sólo de desarrollo local.
@@ -51,7 +51,8 @@ turnos-odontologia/
 |---|---|---|---|
 | `DATABASE_URL` | Conexión SQLAlchemy a PostgreSQL | `postgresql+psycopg://turnos:turnos@db:5432/turnos` | Sí (fuera de desarrollo) |
 | `TEST_DATABASE_URL` | Base descartable para pytest | `postgresql+psycopg://turnos:turnos@localhost:5432/turnos_test` | No (sólo local) |
-| `JWT_SECRET` | Firma de tokens (C-08) | No definida | Sí |
+| `JWT_SECRET` | Firma de tokens (C-08); obligatorio, ≥ 32 caracteres | Generado localmente, nunca versionado | Sí |
+| `JWT_EXPIRA_MINUTOS` | Vida de los tokens de acceso (C-08) | `30` | No |
 | `REDIS_URL` | Broker de tareas asincrónicas (C-16) | `redis://redis:6379/0` | No |
 | `WHATSAPP_*` | Credenciales de mensajería, si se aprueba la integración | No definida | Sí |
 | `MERCADOPAGO_*` | Credenciales para señas, si se aprueban | No definida | Sí |

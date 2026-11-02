@@ -291,3 +291,11 @@ def test_conserva_paciente_y_prestacion() -> None:
     nuevo = reprogramar(uow, inicio=hora(11))
 
     assert (nuevo.paciente_id, nuevo.prestacion_id) == ("paciente-demo-002", PRESTACION.id)
+
+
+def test_reprogramar_registra_el_actor_en_el_historial() -> None:
+    uow = UoW([turno()])
+
+    reprogramar(uow, inicio=hora(11), actor_id="usuario-demo-001")
+
+    assert uow.historiales.confirmados[0].actor_id == "usuario-demo-001"

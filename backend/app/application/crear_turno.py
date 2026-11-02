@@ -23,6 +23,7 @@ class SolicitudCrearTurno:
     prestacion_id: str
     inicio: datetime
     fin: datetime | None = None
+    actor_id: str | None = None
 
 
 class CrearTurno:
@@ -54,7 +55,9 @@ class CrearTurno:
             verificar_bloqueos_de_turno(candidato, bloqueos)
 
             uow.turnos.agregar(candidato)
-            uow.historiales.agregar(HistorialDeCambio(candidato.id, TipoCambio.CREADO, self._reloj()))
+            uow.historiales.agregar(
+                HistorialDeCambio(candidato.id, TipoCambio.CREADO, self._reloj(), actor_id=solicitud.actor_id)
+            )
             uow.commit()
             return candidato
 

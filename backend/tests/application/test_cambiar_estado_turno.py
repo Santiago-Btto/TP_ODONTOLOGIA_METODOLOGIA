@@ -144,3 +144,14 @@ def test_lee_el_turno_con_bloqueo_de_fila(caso: type[ConfirmarTurno] | type[Canc
     caso(lambda: uow, reloj=lambda: AHORA).ejecutar(SolicitudCambioDeEstado(TURNO.id))
 
     assert uow.turnos.bloqueados == [TURNO.id]
+
+
+@pytest.mark.parametrize("caso,tipo", [(ConfirmarTurno, TipoCambio.CONFIRMADO), (CancelarTurno, TipoCambio.CANCELADO)])
+def test_registra_el_actor_en_el_historial(
+    caso: type[ConfirmarTurno] | type[CancelarTurno], tipo: TipoCambio
+) -> None:
+    uow = preparar()
+
+    caso(lambda: uow, reloj=lambda: AHORA).ejecutar(SolicitudCambioDeEstado(TURNO.id, actor_id="usuario-demo-001"))
+
+    assert uow.historiales.confirmados == [HistorialDeCambio(TURNO.id, tipo, AHORA, actor_id="usuario-demo-001")]

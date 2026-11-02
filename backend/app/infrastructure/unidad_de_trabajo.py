@@ -9,6 +9,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.domain.autorizacion import Rol, Usuario
 from app.domain.bloqueos import BloqueoDeDisponibilidad
 from app.domain.disponibilidad import ConflictoBoxError, ConflictoProfesionalError
 from app.domain.turnos import (
@@ -32,6 +33,7 @@ from app.infrastructure.modelos import (
     PrestacionModelo,
     ProfesionalModelo,
     TurnoModelo,
+    UsuarioModelo,
 )
 
 
@@ -167,6 +169,7 @@ class HistorialesSQLAlchemy:
                 ocurrido_en=historial.ocurrido_en,
                 antes=_resumen_a_json(historial.antes),
                 despues=_resumen_a_json(historial.despues),
+                actor_id=historial.actor_id,
             )
         )
 
@@ -220,6 +223,27 @@ class LectorAgendaSQLAlchemy:
         consulta = consulta.order_by(TurnoModelo.inicio.asc())
         with self._fabrica() as sesion:
             return [_a_dominio(fila) for fila in sesion.scalars(consulta)]
+
+
+class UsuariosSQLAlchemy:
+    """Lector de usuarios fuera de la unidad de trabajo (una sesión corta por consulta)."""
+
+    def __init__(self, fabrica: sessionmaker[Session]) -> None:
+        self._fabrica = fabrica
+
+    def por_nombre(self, nombre_usuario: str) -> Usuario | None:
+        with self._fabrica() as sesion:
+            fila = sesion.scalar(select(UsuarioModelo).where(UsuarioModelo.nombre_usuario == nombre_usuario))
+            return None if fila is None else _usuario_a_dominio(fila)
+
+    def por_id(self, usuario_id: str) -> Usuario | None:
+        with self._fabrica() as sesion:
+            fila = sesion.get(UsuarioModelo, usuario_id)
+            return None if fila is None else _usuario_a_dominio(fila)
+
+
+def _usuario_a_dominio(fila: UsuarioModelo) -> Usuario:
+    return Usuario(fila.id, fila.nombre_usuario, fila.hash_contrasena, Rol(fila.rol), fila.profesional_id, fila.activo)
 
 
 def _confirmar_o_traducir(sesion: Session, operacion: Callable[[], None]) -> None:

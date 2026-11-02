@@ -16,6 +16,7 @@ class SolicitudReprogramarTurno:
     fin: datetime | None = None
     profesional_id: str | None = None
     box_id: str | None = None
+    actor_id: str | None = None
 
 
 class ReprogramarTurno:
@@ -59,6 +60,7 @@ class ReprogramarTurno:
             uow.historiales.agregar(HistorialDeCambio(
                 candidato.id, TipoCambio.REPROGRAMADO, self._reloj(),
                 antes=ResumenTurno.de(actual), despues=ResumenTurno.de(candidato),
+                actor_id=solicitud.actor_id,
             ))
             uow.commit()
             return candidato

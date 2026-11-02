@@ -11,6 +11,7 @@ from app.domain.turnos import HistorialDeCambio, RecursoInexistenteError, TipoCa
 @dataclass(frozen=True)
 class SolicitudCambioDeEstado:
     turno_id: str
+    actor_id: str | None = None
 
 
 class _CambiarEstadoTurno:
@@ -29,7 +30,9 @@ class _CambiarEstadoTurno:
                 raise RecursoInexistenteError("turno", solicitud.turno_id)
             nuevo = self._transicionar(actual)
             uow.turnos.actualizar(nuevo)
-            uow.historiales.agregar(HistorialDeCambio(nuevo.id, self._tipo, self._reloj()))
+            uow.historiales.agregar(
+                HistorialDeCambio(nuevo.id, self._tipo, self._reloj(), actor_id=solicitud.actor_id)
+            )
             uow.commit()
             return nuevo
 
