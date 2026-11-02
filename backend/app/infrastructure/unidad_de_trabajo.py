@@ -1,7 +1,7 @@
 """Implementación SQLAlchemy de los puertos de aplicación."""
 
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from types import TracebackType
 from typing import Self
 
@@ -19,6 +19,7 @@ from app.domain.turnos import (
     Prestacion,
     Profesional,
     RecursoInexistenteError,
+    ResumenTurno,
     Turno,
 )
 from app.infrastructure.modelos import (
@@ -160,7 +161,13 @@ class HistorialesSQLAlchemy:
 
     def agregar(self, historial: HistorialDeCambio) -> None:
         self._sesion.add(
-            HistorialModelo(turno_id=historial.turno_id, tipo=historial.tipo.value, ocurrido_en=historial.ocurrido_en)
+            HistorialModelo(
+                turno_id=historial.turno_id,
+                tipo=historial.tipo.value,
+                ocurrido_en=historial.ocurrido_en,
+                antes=_resumen_a_json(historial.antes),
+                despues=_resumen_a_json(historial.despues),
+            )
         )
 
 
@@ -231,6 +238,17 @@ def _traducir(error: IntegrityError) -> Exception:
     if restriccion == RESTRICCION_BOX:
         return ConflictoBoxError()
     return error
+
+
+def _resumen_a_json(resumen: ResumenTurno | None) -> dict[str, str] | None:
+    if resumen is None:
+        return None
+    return {
+        "profesional_id": resumen.profesional_id,
+        "box_id": resumen.box_id,
+        "inicio": resumen.inicio.astimezone(UTC).isoformat(),
+        "fin": resumen.fin.astimezone(UTC).isoformat(),
+    }
 
 
 def _a_dominio(fila: TurnoModelo) -> Turno:

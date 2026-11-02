@@ -68,3 +68,19 @@ def test_ignora_turnos_de_otros_recursos() -> None:
     candidato = turno("candidato", "profesional-demo-002", "box-demo-002", hora(9, 0), hora(9, 30))
 
     verificar_disponibilidad(candidato, [EXISTENTE])
+
+
+def test_la_disponibilidad_ignora_al_propio_turno_al_reprogramar() -> None:
+    anterior = turno("propio", "profesional-demo-001", "box-demo-001", hora(9, 0), hora(9, 30))
+    candidato = turno("propio", "profesional-demo-001", "box-demo-001", hora(9, 15), hora(9, 45))
+
+    verificar_disponibilidad(candidato, [anterior])
+
+
+def test_la_autoexclusion_no_oculta_otros_turnos() -> None:
+    propio = turno("propio", "profesional-demo-001", "box-demo-001", hora(9, 0), hora(9, 30))
+    otro = turno("otro", "profesional-demo-001", "box-demo-002", hora(9, 15), hora(9, 45))
+    candidato = turno("propio", "profesional-demo-001", "box-demo-001", hora(9, 15), hora(9, 45))
+
+    with pytest.raises(ConflictoProfesionalError):
+        verificar_disponibilidad(candidato, [propio, otro])

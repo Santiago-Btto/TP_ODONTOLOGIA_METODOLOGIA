@@ -14,6 +14,23 @@ class TurnoEntrada(BaseModel):
     fin: AwareDatetime | None = None
 
 
+class ReprogramacionEntrada(BaseModel):
+    """Campos omitidos conservan su valor; un `inicio` sin `fin` conserva la duración del turno."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    inicio: AwareDatetime | None = None
+    fin: AwareDatetime | None = None
+    profesional_id: str | None = Field(default=None, min_length=1, max_length=64)
+    box_id: str | None = Field(default=None, min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def exigir_algun_cambio(self) -> Self:
+        if all(valor is None for valor in (self.inicio, self.fin, self.profesional_id, self.box_id)):
+            raise ValueError("Indicar al menos uno de: inicio, fin, profesional_id, box_id.")
+        return self
+
+
 class TurnoSalida(BaseModel):
     id: str
     paciente_id: str

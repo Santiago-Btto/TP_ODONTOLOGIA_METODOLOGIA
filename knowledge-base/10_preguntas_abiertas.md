@@ -15,7 +15,8 @@ No se detectaron contradicciones materiales entre el checklist y el informe. Amb
 | Alta | [DISCOVERY] `scale` sólo se infirió como equipo desde los actores de los documentos. ¿El alcance es una clínica, varias sucursales o un producto multi-clínica? | Arquitectura y autorización futuras | Product Owner |
 | Alta | ¿Qué datos mínimos de paciente son necesarios y qué consentimiento, retención, exportación y seguridad aplican? | Modelo de datos si se agregan datos personales | Responsable legal / clínica |
 | Media | ¿Cómo se resuelven bloqueos que se solapan con turnos ya creados? | Operación de bloqueos | Responsable de clínica |
-| Media | ¿Qué ocurre si se intenta reprogramar un turno cancelado o confirmar uno vencido? | Máquina de estados | Product Owner |
+| Media | ¿Qué ocurre si se intenta reprogramar un turno cancelado o confirmar uno vencido? *(Provisorio C-04/C-05: reprogramar un cancelado se rechaza; confirmar un vencido se permite.)* | Máquina de estados | Product Owner |
+| Media | ¿Reprogramar un turno confirmado debe devolverlo a `programado` para reconfirmarlo? *(Provisorio C-04: conserva `confirmado`.)* | Máquina de estados y recordatorios | Product Owner |
 | Media | ¿La agenda diaria/semanal debe ocultar, anonimizar o limitar datos según el rol? | Autorización y privacidad | Clínica / Product Owner |
 | Media | ¿Cuál es la ventana de cancelación, y cómo se aplican señas y reintegros? | Integración de pagos posterior | Responsable de clínica / Finanzas |
 | Media | ¿Qué canal de recordatorio y consentimiento se requiere para WhatsApp u otros medios? | Integración de mensajería posterior | Product Owner / legal |

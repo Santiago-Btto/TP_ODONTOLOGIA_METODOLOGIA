@@ -44,6 +44,14 @@ class TipoCambio(StrEnum):
     CREADO = "creado"
     CONFIRMADO = "confirmado"
     CANCELADO = "cancelado"
+    REPROGRAMADO = "reprogramado"
+
+
+class ReprogramacionSinCambiosError(ErrorDeDominio):
+    codigo = "reprogramacion_sin_cambios"
+
+    def __init__(self) -> None:
+        super().__init__("La reprogramación no cambia horario ni recursos del turno.")
 
 
 class TransicionInvalidaError(ErrorDeDominio):
@@ -116,6 +124,38 @@ class Turno:
     def cancelar(self) -> "Turno":
         return self._transicionar("cancelar")
 
+    def reprogramar(
+        self,
+        *,
+        inicio: datetime | None = None,
+        fin: datetime | None = None,
+        profesional_id: str | None = None,
+        box_id: str | None = None,
+    ) -> "Turno":
+        """Copia con nuevo horario y/o recursos (RN-TU-02). Conserva estado, paciente y prestación.
+
+        Un inicio sin fin conserva la duración vigente; los campos omitidos conservan su valor.
+        """
+        if not self.activo:
+            raise TransicionInvalidaError(self.estado, "reprogramar")
+        nuevo_inicio = inicio if inicio is not None else self.inicio
+        if fin is not None:
+            nuevo_fin = fin
+        elif inicio is not None:
+            nuevo_fin = inicio + (self.fin - self.inicio)
+        else:
+            nuevo_fin = self.fin
+        candidato = replace(
+            self,
+            inicio=nuevo_inicio,
+            fin=nuevo_fin,
+            profesional_id=profesional_id if profesional_id is not None else self.profesional_id,
+            box_id=box_id if box_id is not None else self.box_id,
+        )
+        if ResumenTurno.de(candidato) == ResumenTurno.de(self):
+            raise ReprogramacionSinCambiosError()
+        return candidato
+
     def _transicionar(self, accion: str) -> "Turno":
         destino = _TRANSICIONES.get((self.estado, accion))
         if destino is None:
@@ -124,10 +164,26 @@ class Turno:
 
 
 @dataclass(frozen=True)
+class ResumenTurno:
+    """Lo que cambia al reprogramar; se guarda como `antes` / `despues` en el historial."""
+
+    profesional_id: str
+    box_id: str
+    inicio: datetime
+    fin: datetime
+
+    @classmethod
+    def de(cls, turno: Turno) -> "ResumenTurno":
+        return cls(turno.profesional_id, turno.box_id, turno.inicio, turno.fin)
+
+
+@dataclass(frozen=True)
 class HistorialDeCambio:
     turno_id: str
     tipo: TipoCambio
     ocurrido_en: datetime
+    antes: ResumenTurno | None = None
+    despues: ResumenTurno | None = None
 
 
 def calcular_fin(inicio: datetime, prestacion: Prestacion) -> datetime:

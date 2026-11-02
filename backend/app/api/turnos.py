@@ -4,9 +4,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Path, Request, status
 
-from app.api.esquemas import ErrorSalida, TurnoEntrada, TurnoSalida
+from app.api.esquemas import ErrorSalida, ReprogramacionEntrada, TurnoEntrada, TurnoSalida
 from app.application.cambiar_estado_turno import CancelarTurno, ConfirmarTurno, SolicitudCambioDeEstado
 from app.application.crear_turno import CrearTurno, SolicitudCrearTurno
+from app.application.reprogramar_turno import ReprogramarTurno, SolicitudReprogramarTurno
 from app.domain.turnos import Turno
 from app.infrastructure.unidad_de_trabajo import UnidadDeTrabajoSQLAlchemy
 
@@ -71,6 +72,30 @@ def cancelar_turno(
     turno_id: IdTurno, caso: Annotated[CancelarTurno, Depends(caso_cancelar_turno)]
 ) -> TurnoSalida:
     return a_salida(caso.ejecutar(SolicitudCambioDeEstado(turno_id)))
+
+
+def caso_reprogramar_turno(request: Request) -> ReprogramarTurno:
+    fabrica = request.app.state.fabrica
+    return ReprogramarTurno(lambda: UnidadDeTrabajoSQLAlchemy(fabrica), reloj=lambda: datetime.now(UTC))
+
+
+@router.patch(
+    "/{turno_id}",
+    response_model=TurnoSalida,
+    responses={404: {"model": ErrorSalida}, 409: {"model": ErrorSalida}, 422: {"model": ErrorSalida}},
+)
+def reprogramar_turno(
+    turno_id: IdTurno,
+    entrada: ReprogramacionEntrada,
+    caso: Annotated[ReprogramarTurno, Depends(caso_reprogramar_turno)],
+) -> TurnoSalida:
+    return a_salida(caso.ejecutar(SolicitudReprogramarTurno(
+        turno_id=turno_id,
+        inicio=entrada.inicio,
+        fin=entrada.fin,
+        profesional_id=entrada.profesional_id,
+        box_id=entrada.box_id,
+    )))
 
 
 def a_salida(turno: Turno) -> TurnoSalida:

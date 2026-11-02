@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT (C-08) · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03) y la confirmación y cancelación de turnos (C-05). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04) y la confirmación y cancelación de turnos (C-05). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > La API todavía no tiene autenticación (llega con C-08): es sólo para desarrollo local. Todos los datos son ficticios.
 
@@ -139,7 +139,7 @@ El resultado `201` incluye el ID del bloqueo, el recurso, el intervalo en UTC y 
 | `409` | Un turno activo cruza el bloqueo | `conflicto_turno_existente` |
 | `422` | Recurso omitido o doble, fecha inválida/sin zona, o `fin <= inicio` | `detail` de validación de FastAPI |
 
-La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. La reprogramación llegará con C-04 y los permisos con C-08.
+La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. Los permisos llegan con C-08.
 
 - Confirmar o cancelar un turno (`POST /api/v1/turnos/{turno_id}/confirmar` y `POST /api/v1/turnos/{turno_id}/cancelar`, sin cuerpo):
 
@@ -158,6 +158,23 @@ Transiciones permitidas: `programado → confirmado`, `programado → cancelado`
 | `422` | Identificador de más de 64 caracteres | `detail` de validación de FastAPI |
 
 La ventana de cancelación y la confirmación de turnos vencidos siguen como preguntas abiertas (ver `knowledge-base/10_preguntas_abiertas.md`).
+
+- Reprogramar un turno (`PATCH /api/v1/turnos/{turno_id}`): indicar al menos uno entre `inicio`, `fin`, `profesional_id` y `box_id`. Lo omitido se conserva; un `inicio` sin `fin` conserva la duración del turno.
+
+```bash
+curl -X PATCH http://localhost:8000/api/v1/turnos/ID-DEL-TURNO -H "content-type: application/json" -d '{"inicio":"2030-01-10T11:00:00-03:00","box_id":"box-demo-002"}'
+```
+
+El nuevo intervalo se valida contra los demás turnos activos y los bloqueos del profesional y box de destino; el propio turno no cuenta como conflicto. Si algo falla, el turno queda exactamente como estaba. Si es válido, el intervalo anterior se libera y el historial registra `reprogramado` con el resumen anterior y posterior. El estado (`programado` / `confirmado`) se conserva.
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `200` | Turno reprogramado | — |
+| `404` | Turno, profesional o box inexistente | `recurso_inexistente` |
+| `409` | Conflicto en el destino o turno cancelado | `conflicto_profesional` / `conflicto_box` / `conflicto_bloqueo_profesional` / `conflicto_bloqueo_box` / `transicion_invalida` |
+| `422` | `fin <= inicio`, ningún valor cambia, cuerpo vacío, campo desconocido o fecha sin zona | `intervalo_invalido` / `reprogramacion_sin_cambios` / `detail` de FastAPI |
+
+> C-04 agregó las columnas `antes` y `despues` a `historial_cambios`. Hasta que existan migraciones (C-07), una base local creada antes debe recrearse: `docker compose down -v` y volver a levantarla.
 
 Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas` y `uvicorn app.api.main:app --reload` desde `backend/`.
 

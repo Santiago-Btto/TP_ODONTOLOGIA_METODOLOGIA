@@ -70,8 +70,14 @@ def se_solapan(a: ConIntervalo, b: ConIntervalo) -> bool:
     return a.inicio < b.fin and b.inicio < a.fin
 
 
-def verificar_disponibilidad(candidato: Reservable, activos: Iterable[Reservable]) -> None:
-    activos = list(activos)
+class ConIdentidad(Reservable, Protocol):
+    @property
+    def id(self) -> str: ...
+
+
+def verificar_disponibilidad(candidato: ConIdentidad, activos: Iterable[ConIdentidad]) -> None:
+    # Autoexclusión (C-04): al reprogramar, la versión anterior del mismo turno no es un conflicto.
+    activos = [t for t in activos if t.id != candidato.id]
     if any(t.profesional_id == candidato.profesional_id and se_solapan(candidato, t) for t in activos):
         raise ConflictoProfesionalError()
     if any(t.box_id == candidato.box_id and se_solapan(candidato, t) for t in activos):

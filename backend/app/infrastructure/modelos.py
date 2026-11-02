@@ -14,6 +14,7 @@ from sqlalchemy import (
     Text,
     event,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 RESTRICCION_PROFESIONAL = "turnos_sin_solapamiento_profesional"
@@ -97,6 +98,9 @@ class HistorialModelo(Base):
     turno_id: Mapped[str] = mapped_column(ForeignKey("turnos.id"), index=True)
     tipo: Mapped[str] = mapped_column(String(20))
     ocurrido_en: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # Resumen anterior/posterior de una reprogramación (C-04); nulos en los demás eventos.
+    antes: Mapped[dict[str, str] | None] = mapped_column(JSONB)
+    despues: Mapped[dict[str, str] | None] = mapped_column(JSONB)
 
 
 event.listen(Base.metadata, "before_create", DDL("CREATE EXTENSION IF NOT EXISTS btree_gist"))

@@ -22,6 +22,7 @@ from app.domain.turnos import (
     ErrorDeDominio,
     IntervaloInvalidoError,
     RecursoInexistenteError,
+    ReprogramacionSinCambiosError,
     TransicionInvalidaError,
 )
 from app.infrastructure.db import crear_esquema, crear_fabrica_de_sesiones, crear_motor, url_de_base
@@ -39,6 +40,7 @@ ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
     IntervaloInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IntervaloBloqueoInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     DuracionInvalidaError: status.HTTP_422_UNPROCESSABLE_ENTITY,
+    ReprogramacionSinCambiosError: status.HTTP_422_UNPROCESSABLE_ENTITY,
 }
 
 

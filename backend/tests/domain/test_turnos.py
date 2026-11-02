@@ -8,6 +8,8 @@ from app.domain.turnos import (
     EstadoTurno,
     IntervaloInvalidoError,
     Prestacion,
+    ReprogramacionSinCambiosError,
+    ResumenTurno,
     TransicionInvalidaError,
     Turno,
     calcular_fin,
@@ -95,3 +97,55 @@ def test_transiciones_no_permitidas_se_rechazan(estado_inicial: EstadoTurno, acc
 
     assert error.value.codigo == "transicion_invalida"
     assert estado_inicial.value in str(error.value)
+
+
+# Reprogramación (C-04)
+def test_reprogramar_el_inicio_conserva_la_duracion_y_el_estado() -> None:
+    original = replace(turno(INICIO, FIN), estado=EstadoTurno.CONFIRMADO)
+
+    nuevo = original.reprogramar(inicio=datetime(2030, 1, 10, 11, 0, tzinfo=UTC))
+
+    assert (nuevo.inicio, nuevo.fin) == (datetime(2030, 1, 10, 11, 0, tzinfo=UTC),
+                                         datetime(2030, 1, 10, 11, 30, tzinfo=UTC))
+    assert nuevo.estado is EstadoTurno.CONFIRMADO
+    assert (nuevo.id, nuevo.paciente_id, nuevo.prestacion_id) == (
+        original.id, original.paciente_id, original.prestacion_id)
+
+
+def test_reprogramar_recursos_conserva_el_intervalo() -> None:
+    nuevo = turno(INICIO, FIN).reprogramar(profesional_id="profesional-demo-002", box_id="box-demo-002")
+
+    assert (nuevo.profesional_id, nuevo.box_id, nuevo.inicio, nuevo.fin) == (
+        "profesional-demo-002", "box-demo-002", INICIO, FIN)
+
+
+def test_reprogramar_solo_el_fin_extiende_el_turno() -> None:
+    nuevo = turno(INICIO, FIN).reprogramar(fin=datetime(2030, 1, 10, 10, 0, tzinfo=UTC))
+
+    assert (nuevo.inicio, nuevo.fin) == (INICIO, datetime(2030, 1, 10, 10, 0, tzinfo=UTC))
+
+
+@pytest.mark.parametrize("cambios", [{"fin": INICIO}, {"inicio": FIN, "fin": INICIO}])
+def test_reprogramar_con_fin_no_posterior_se_rechaza(cambios: dict[str, datetime]) -> None:
+    with pytest.raises(IntervaloInvalidoError):
+        turno(INICIO, FIN).reprogramar(**cambios)
+
+
+@pytest.mark.parametrize("cambios", [{}, {"inicio": INICIO, "fin": FIN, "box_id": "box-demo-001"}])
+def test_reprogramar_sin_cambios_se_rechaza(cambios: dict[str, object]) -> None:
+    with pytest.raises(ReprogramacionSinCambiosError) as error:
+        turno(INICIO, FIN).reprogramar(**cambios)  # type: ignore[arg-type]
+
+    assert error.value.codigo == "reprogramacion_sin_cambios"
+
+
+def test_reprogramar_un_turno_cancelado_es_una_transicion_invalida() -> None:
+    cancelado = turno(INICIO, FIN).cancelar()
+
+    with pytest.raises(TransicionInvalidaError):
+        cancelado.reprogramar(inicio=datetime(2030, 1, 10, 11, 0, tzinfo=UTC))
+
+
+def test_resumen_describe_recursos_e_intervalo() -> None:
+    assert ResumenTurno.de(turno(INICIO, FIN)) == ResumenTurno(
+        "profesional-demo-001", "box-demo-001", INICIO, FIN)
