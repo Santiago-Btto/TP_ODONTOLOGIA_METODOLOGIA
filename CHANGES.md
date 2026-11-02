@@ -127,13 +127,13 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 
 ### [C-03] `bloquear-disponibilidad`
 - **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-10-30-bloquear-disponibilidad/` (148 tests en verde contra PostgreSQL real).
-- **Scope**: Tabla y repositorio `bloqueo_disponibilidad` (recurso profesional o box, intervalo válido, motivo opcional); `POST /api/v1/bloqueos`; el alta de turnos rechaza intervalos que intersecten un bloqueo. La misma regla queda disponible para la reprogramación de C-04, aún pendiente. Un bloqueo que intersecta un turno existente se rechaza con error explícito, sin modificarlo; la política clínica definitiva sigue abierta. Tests: ambos recursos, bordes contiguos, alta rechazada y carreras concurrentes.
+- **Scope**: Tabla y repositorio `bloqueo_disponibilidad` (recurso profesional o box, intervalo válido, motivo opcional); `POST /api/v1/bloqueos`; el alta de turnos rechaza intervalos que intersecten un bloqueo. La misma regla la consume la reprogramación de C-04. Un bloqueo que intersecta un turno existente se rechaza con error explícito, sin modificarlo; la política clínica definitiva sigue abierta. Tests: ambos recursos, bordes contiguos, alta rechazada y carreras concurrentes.
 - **Dependencias**: C-01b
 - **Governance**: MEDIO
 - **Leer antes**: `05_reglas_de_negocio.md` §RN-DA-02 y RN-DI-04, `06_funcionalidades.md` §US-003, `10_preguntas_abiertas.md` (Media)
 
 ### [C-04] `reprogramar-turno-atomicamente`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-02-reprogramar-turno-atomicamente/` (234 tests en verde contra PostgreSQL real, incluidas carreras reprogramación↔alta). `PATCH /api/v1/turnos/{id}`; historial `reprogramado` con `antes`/`despues`.
 - **Scope**: `ReprogramarTurno` y `PATCH /api/v1/turnos/{id}`: excluir el propio turno de la comparación, validar contra turnos y bloqueos, actualizar e insertar historial `reprogramado` en la misma transacción. Tests: cambio válido, conflictos por profesional/box/bloqueo, autoexclusión y fallo atómico.
 - **Dependencias**: C-01b, C-03
 - **Governance**: MEDIO
