@@ -1,9 +1,11 @@
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.application.puertos import UnidadDeTrabajo
+from app.application.puertos import ColaRecordatorios, ColaRecordatoriosNoOp, UnidadDeTrabajo
 from app.domain.disponibilidad import verificar_bloqueos_de_turno, verificar_disponibilidad
+from app.domain.recordatorios import MotivoRecordatorio, TareaRecordatorio
 from app.domain.turnos import (
     HistorialDeCambio,
     Prestacion,
@@ -12,6 +14,8 @@ from app.domain.turnos import (
     Turno,
     calcular_fin,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -27,9 +31,15 @@ class SolicitudCrearTurno:
 
 
 class CrearTurno:
-    def __init__(self, unidad_de_trabajo: Callable[[], UnidadDeTrabajo], reloj: Callable[[], datetime]) -> None:
+    def __init__(
+        self,
+        unidad_de_trabajo: Callable[[], UnidadDeTrabajo],
+        reloj: Callable[[], datetime],
+        cola_recordatorios: ColaRecordatorios = ColaRecordatoriosNoOp(),
+    ) -> None:
         self._unidad_de_trabajo = unidad_de_trabajo
         self._reloj = reloj
+        self._cola_recordatorios = cola_recordatorios
 
     def ejecutar(self, solicitud: SolicitudCrearTurno) -> Turno:
         with self._unidad_de_trabajo() as uow:
@@ -59,7 +69,21 @@ class CrearTurno:
                 HistorialDeCambio(candidato.id, TipoCambio.CREADO, self._reloj(), actor_id=solicitud.actor_id)
             )
             uow.commit()
-            return candidato
+
+        self._encolar_recordatorio_seguro(candidato.id)
+        return candidato
+
+    def _encolar_recordatorio_seguro(self, turno_id: str) -> None:
+        try:
+            self._cola_recordatorios.encolar(
+                TareaRecordatorio(turno_id=turno_id, motivo=MotivoRecordatorio.CREADO)
+            )
+        except Exception:
+            logger.warning(
+                "No se pudo encolar el recordatorio de creación para el turno '%s' (RN-EX-02).",
+                turno_id,
+                exc_info=True,
+            )
 
     @staticmethod
     def _verificar_recursos(uow: UnidadDeTrabajo, solicitud: SolicitudCrearTurno) -> Prestacion:

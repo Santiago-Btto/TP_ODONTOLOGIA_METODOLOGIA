@@ -4,12 +4,21 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Path, Request, status
 
-from app.api.esquemas import ErrorSalida, ReprogramacionEntrada, TurnoEntrada, TurnoSalida
+from app.api.esquemas import (
+    ErrorSalida,
+    RecordatorioSimuladoSalida,
+    ReprogramacionEntrada,
+    TurnoEntrada,
+    TurnoSalida,
+)
 from app.api.seguridad import actor_actual, requiere
 from app.application.cambiar_estado_turno import CancelarTurno, ConfirmarTurno, SolicitudCambioDeEstado
 from app.application.crear_turno import CrearTurno, SolicitudCrearTurno
+from app.application.procesar_recordatorio import ConsultarRecordatoriosTurno
+from app.application.puertos import ColaRecordatorios, ColaRecordatoriosNoOp
 from app.application.reprogramar_turno import ReprogramarTurno, SolicitudReprogramarTurno
 from app.domain.autorizacion import Actor, Permiso
+from app.domain.recordatorios import RecordatorioEnviado
 from app.domain.turnos import Turno
 from app.infrastructure.unidad_de_trabajo import UnidadDeTrabajoSQLAlchemy
 
@@ -18,9 +27,17 @@ router = APIRouter(prefix="/api/v1/turnos", tags=["turnos"], dependencies=[Depen
 IdTurno = Annotated[str, Path(min_length=1, max_length=64)]
 
 
+def cola_de_recordatorios(request: Request) -> ColaRecordatorios:
+    return getattr(request.app.state, "cola_recordatorios", ColaRecordatoriosNoOp())
+
+
 def caso_crear_turno(request: Request) -> CrearTurno:
     fabrica = request.app.state.fabrica
-    return CrearTurno(lambda: UnidadDeTrabajoSQLAlchemy(fabrica), reloj=lambda: datetime.now(UTC))
+    return CrearTurno(
+        lambda: UnidadDeTrabajoSQLAlchemy(fabrica),
+        reloj=lambda: datetime.now(UTC),
+        cola_recordatorios=cola_de_recordatorios(request),
+    )
 
 
 @router.post(
@@ -51,12 +68,21 @@ def crear_turno(
 
 def caso_confirmar_turno(request: Request) -> ConfirmarTurno:
     fabrica = request.app.state.fabrica
-    return ConfirmarTurno(lambda: UnidadDeTrabajoSQLAlchemy(fabrica), reloj=lambda: datetime.now(UTC))
+    return ConfirmarTurno(
+        lambda: UnidadDeTrabajoSQLAlchemy(fabrica),
+        reloj=lambda: datetime.now(UTC),
+        cola_recordatorios=cola_de_recordatorios(request),
+    )
 
 
 def caso_cancelar_turno(request: Request) -> CancelarTurno:
     fabrica = request.app.state.fabrica
     return CancelarTurno(lambda: UnidadDeTrabajoSQLAlchemy(fabrica), reloj=lambda: datetime.now(UTC))
+
+
+def caso_consultar_recordatorios(request: Request) -> ConsultarRecordatoriosTurno:
+    fabrica = request.app.state.fabrica
+    return ConsultarRecordatoriosTurno(lambda: UnidadDeTrabajoSQLAlchemy(fabrica))
 
 
 @router.post(
@@ -83,6 +109,19 @@ def cancelar_turno(
     actor: Annotated[Actor, Depends(requiere(Permiso.CANCELAR_TURNO))],
 ) -> TurnoSalida:
     return a_salida(caso.ejecutar(SolicitudCambioDeEstado(turno_id, actor_id=actor.id)))
+
+
+@router.get(
+    "/{turno_id}/recordatorios",
+    response_model=list[RecordatorioSimuladoSalida],
+    responses={404: {"model": ErrorSalida}},
+)
+def consultar_recordatorios(
+    turno_id: IdTurno,
+    caso: Annotated[ConsultarRecordatoriosTurno, Depends(caso_consultar_recordatorios)],
+    _: Annotated[Actor, Depends(requiere(Permiso.CONSULTAR_RECORDATORIOS))],
+) -> list[RecordatorioSimuladoSalida]:
+    return [a_recordatorio_salida(item) for item in caso.ejecutar(turno_id)]
 
 
 def caso_reprogramar_turno(request: Request) -> ReprogramarTurno:
@@ -121,4 +160,14 @@ def a_salida(turno: Turno) -> TurnoSalida:
         inicio=turno.inicio.astimezone(UTC),
         fin=turno.fin.astimezone(UTC),
         estado=turno.estado.value,
+    )
+
+
+def a_recordatorio_salida(recordatorio: RecordatorioEnviado) -> RecordatorioSimuladoSalida:
+    return RecordatorioSimuladoSalida(
+        id=recordatorio.id,
+        turno_id=recordatorio.turno_id,
+        motivo=recordatorio.motivo.value,
+        destinatario=recordatorio.destinatario,
+        enviado_en=recordatorio.enviado_en.astimezone(UTC),
     )

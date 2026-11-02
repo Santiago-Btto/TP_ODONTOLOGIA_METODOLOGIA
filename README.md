@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05) y la autenticación con JWT y roles (C-08). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05), la autenticación con JWT y roles (C-08) y el recordatorio simulado con Redis (C-16). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > Todas las rutas `/api/v1` exigen un token JWT (C-08). La API sigue siendo interna: rate limiting, CORS y exposición pública llegan con C-09. Todos los datos son ficticios.
 
@@ -12,7 +12,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 ```text
 backend/            API FastAPI, dominio, casos de uso, persistencia y tests (pytest)
-docker-compose.yml  PostgreSQL + API para desarrollo local
+docker-compose.yml  PostgreSQL + Redis + API para desarrollo local
 knowledge-base/     Base de conocimiento del proyecto
 .agents/skills/     Skills locales versionadas y skills OPSX del proyecto
 openspec/           Specs vigentes y changes archivados
@@ -29,7 +29,7 @@ Los tests de dominio y de casos de uso no necesitan base de datos. Los de persis
 Requisitos: Docker con Docker Compose v2.
 
 ```bash
-docker compose up -d db
+docker compose up -d db redis
 ```
 
 ```bash
@@ -80,7 +80,7 @@ docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre 
 # docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre odontologo.demo --rol odontologo --profesional-id profesional-demo-001
 ```
 
-> Si la base local se creó antes de C-04/C-08, recrearla (`docker compose down -v`): faltan columnas del historial y no hay migraciones hasta C-07.
+> Si la base local se creó antes de C-04/C-08/C-16, recrearla (`docker compose down -v`): faltan tablas o columnas nuevas y no hay migraciones hasta C-07.
 
 3. Obtener un token (OAuth2 password flow) y usarlo en cada request:
 
@@ -94,7 +94,7 @@ Todos los ejemplos de abajo llevan `-H "Authorization: Bearer $TOKEN"`. En http:
 
 | Rol | Puede |
 |---|---|
-| `recepcion`, `responsable` | Crear, reprogramar, confirmar y cancelar turnos; crear bloqueos; consultar cualquier agenda |
+| `recepcion`, `responsable` | Crear, reprogramar, confirmar y cancelar turnos; crear bloqueos; consultar cualquier agenda y consultar recordatorios simulados |
 | `odontologo` | Sólo consultar su propia agenda (`profesional_id` = el profesional vinculado a su usuario) |
 
 | Respuesta | Cuándo | `codigo` |
@@ -208,7 +208,30 @@ El nuevo intervalo se valida contra los demás turnos activos y los bloqueos del
 | `409` | Conflicto en el destino o turno cancelado | `conflicto_profesional` / `conflicto_box` / `conflicto_bloqueo_profesional` / `conflicto_bloqueo_box` / `transicion_invalida` |
 | `422` | `fin <= inicio`, ningún valor cambia, cuerpo vacío, campo desconocido o fecha sin zona | `intervalo_invalido` / `reprogramacion_sin_cambios` / `detail` de FastAPI |
 
-Sin Docker: definir `DATABASE_URL` y `JWT_SECRET` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas`, crear un usuario con `python -m app.infrastructure.crear_usuario …` y `uvicorn app.api.main:app --reload` desde `backend/`.
+- Recordatorios simulados con Redis (`C-16`, `GET /api/v1/turnos/{turno_id}/recordatorios`):
+
+  Al crear o confirmar un turno, se encola en Redis (`REDIS_URL`) una tarea de recordatorio (`creado` / `confirmado`) exclusivamente tras confirmar la transacción en PostgreSQL. Si Redis no está disponible, el alta, la confirmación y la consulta de agenda siguen operando con normalidad (`RN-EX-02`).
+
+  Para procesar las tareas encoladas con el `NotificadorSimulado` (idempotente por `(turno_id, motivo)` y que omite turnos cancelados):
+
+```bash
+docker compose run --rm api python -m app.infrastructure.worker_recordatorios --una-vez
+```
+
+  Consultar los recordatorios simulados registrados de un turno (`recepcion` o `responsable`):
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/recordatorios"
+```
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `200` | Lista de recordatorios simulados enviados del turno (ordenada por `enviado_en` ascendente) | — |
+| `401` | Sin token o token inválido/expirado | `no_autenticado` / `token_invalido` / `token_expirado` |
+| `403` | Rol sin permiso (`odontologo`) | `acceso_denegado` |
+| `404` | El turno no existe | `recurso_inexistente` |
+
+Sin Docker: definir `DATABASE_URL`, `REDIS_URL` (opcional; si se omite usa cola nula) y `JWT_SECRET` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas`, crear un usuario con `python -m app.infrastructure.crear_usuario …` y `uvicorn app.api.main:app --reload` desde `backend/`.
 
 ## Proceso (SDD / OPSX)
 

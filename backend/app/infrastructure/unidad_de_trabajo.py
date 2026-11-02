@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.domain.autorizacion import Rol, Usuario
 from app.domain.bloqueos import BloqueoDeDisponibilidad
 from app.domain.disponibilidad import ConflictoBoxError, ConflictoProfesionalError
+from app.domain.recordatorios import MotivoRecordatorio, RecordatorioEnviado
 from app.domain.turnos import (
     Box,
     EstadoTurno,
@@ -32,6 +33,7 @@ from app.infrastructure.modelos import (
     PacienteModelo,
     PrestacionModelo,
     ProfesionalModelo,
+    RecordatorioEnviadoModelo,
     TurnoModelo,
     UsuarioModelo,
 )
@@ -79,6 +81,10 @@ class RecursosSQLAlchemy:
 class TurnosSQLAlchemy:
     def __init__(self, sesion: Session) -> None:
         self._sesion = sesion
+
+    def obtener(self, turno_id: str) -> Turno | None:
+        fila = self._sesion.get(TurnoModelo, turno_id)
+        return None if fila is None else _a_dominio(fila)
 
     def activos_que_se_solapan(
         self, profesional_id: str, box_id: str, inicio: datetime, fin: datetime
@@ -174,6 +180,41 @@ class HistorialesSQLAlchemy:
         )
 
 
+class RecordatoriosSQLAlchemy:
+    def __init__(self, sesion: Session) -> None:
+        self._sesion = sesion
+
+    def obtener(self, turno_id: str, motivo: MotivoRecordatorio) -> RecordatorioEnviado | None:
+        consulta = select(RecordatorioEnviadoModelo).where(
+            RecordatorioEnviadoModelo.turno_id == turno_id,
+            RecordatorioEnviadoModelo.motivo == motivo.value,
+        )
+        fila = self._sesion.scalar(consulta)
+        return None if fila is None else _recordatorio_a_dominio(fila)
+
+    def agregar(self, recordatorio: RecordatorioEnviado) -> RecordatorioEnviado:
+        fila = RecordatorioEnviadoModelo(
+            turno_id=recordatorio.turno_id,
+            motivo=recordatorio.motivo.value,
+            destinatario=recordatorio.destinatario,
+            enviado_en=recordatorio.enviado_en,
+        )
+        self._sesion.add(fila)
+        self._sesion.flush()
+        return _recordatorio_a_dominio(fila)
+
+    def listar_por_turno(self, turno_id: str) -> list[RecordatorioEnviado]:
+        consulta = (
+            select(RecordatorioEnviadoModelo)
+            .where(RecordatorioEnviadoModelo.turno_id == turno_id)
+            .order_by(RecordatorioEnviadoModelo.enviado_en.asc(), RecordatorioEnviadoModelo.id.asc())
+        )
+        return [_recordatorio_a_dominio(fila) for fila in self._sesion.scalars(consulta)]
+
+
+RepositorioRecordatoriosSQLAlchemy = RecordatoriosSQLAlchemy
+
+
 class UnidadDeTrabajoSQLAlchemy:
     def __init__(self, fabrica: sessionmaker[Session]) -> None:
         self._fabrica = fabrica
@@ -186,6 +227,7 @@ class UnidadDeTrabajoSQLAlchemy:
         self.turnos = TurnosSQLAlchemy(self._sesion)
         self.historiales = HistorialesSQLAlchemy(self._sesion)
         self.bloqueos = BloqueosSQLAlchemy(self._sesion)
+        self.recordatorios = RecordatoriosSQLAlchemy(self._sesion)
         return self
 
     def __exit__(
@@ -296,4 +338,14 @@ def _bloqueo_a_dominio(fila: BloqueoModelo) -> BloqueoDeDisponibilidad:
         inicio=fila.inicio,
         fin=fila.fin,
         motivo=fila.motivo,
+    )
+
+
+def _recordatorio_a_dominio(fila: RecordatorioEnviadoModelo) -> RecordatorioEnviado:
+    return RecordatorioEnviado(
+        id=fila.id,
+        turno_id=fila.turno_id,
+        motivo=MotivoRecordatorio(fila.motivo),
+        destinatario=fila.destinatario,
+        enviado_en=fila.enviado_en,
     )

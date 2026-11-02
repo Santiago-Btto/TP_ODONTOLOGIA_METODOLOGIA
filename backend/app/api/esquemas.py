@@ -51,6 +51,14 @@ class TurnoAgendaSalida(BaseModel):
     estado: str
 
 
+class RecordatorioSimuladoSalida(BaseModel):
+    id: int | None
+    turno_id: str
+    motivo: str
+    destinatario: str
+    enviado_en: AwareDatetime
+
+
 class BloqueoEntrada(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

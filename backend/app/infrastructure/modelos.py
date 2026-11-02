@@ -12,6 +12,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     event,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -123,6 +124,27 @@ class HistorialModelo(Base):
     actor_id: Mapped[str | None] = mapped_column(
         ForeignKey("usuarios.id", ondelete="RESTRICT", onupdate="RESTRICT"), index=True
     )
+
+
+class RecordatorioEnviadoModelo(Base):
+    """Registro de recordatorios simulados enviados por turno y motivo (C-16)."""
+
+    __tablename__ = "recordatorios_enviados"
+    __table_args__ = (
+        UniqueConstraint("turno_id", "motivo", name="uq_recordatorios_enviados_turno_motivo"),
+        CheckConstraint("motivo IN ('creado', 'confirmado')", name="recordatorios_motivo_valido"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, Identity(), primary_key=True)
+    turno_id: Mapped[str] = mapped_column(
+        ForeignKey("turnos.id", ondelete="RESTRICT", onupdate="RESTRICT"), index=True
+    )
+    motivo: Mapped[str] = mapped_column(String(20))
+    destinatario: Mapped[str] = mapped_column(String(200))
+    enviado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+ModeloRecordatorioEnviado = RecordatorioEnviadoModelo
 
 
 event.listen(Base.metadata, "before_create", DDL("CREATE EXTENSION IF NOT EXISTS btree_gist"))

@@ -154,7 +154,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `03_actores_y_roles.md` §RBAC, `08_arquitectura_propuesta.md` §Seguridad, `10_preguntas_abiertas.md` §Quién puede operar
 
 ### [C-16] `recordatorio-simulado-con-redis`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-02-recordatorio-simulado-con-redis/` (363 tests en verde contra PostgreSQL real). Encolado pos-commit en Redis con degradación segura ante caída de Redis (RN-EX-02), worker síncrono, `NotificadorSimulado` con idempotencia en `recordatorios_enviados` y endpoint `GET /api/v1/turnos/{turno_id}/recordatorios`.
 - **Scope**: Recordatorio manual o simulado exigido por la sección D: al crear/confirmar un turno se encola en Redis una tarea de recordatorio; un worker la procesa con un `NotificadorSimulado` que sólo registra el envío (sin WhatsApp real). Servicio `redis` en Docker Compose y `REDIS_URL`. Tests: encolado tras commit, idempotencia, turno cancelado no notifica, la agenda funciona con Redis caído.
 - **Dependencias**: C-01b
 - **Governance**: MEDIO

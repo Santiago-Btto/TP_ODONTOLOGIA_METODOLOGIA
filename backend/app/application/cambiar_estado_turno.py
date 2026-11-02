@@ -1,11 +1,15 @@
-"""Casos de uso de confirmación y cancelación de turnos (C-05)."""
+"""Casos de uso de confirmación y cancelación de turnos (C-05, C-16)."""
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.application.puertos import UnidadDeTrabajo
+from app.application.puertos import ColaRecordatorios, ColaRecordatoriosNoOp, UnidadDeTrabajo
+from app.domain.recordatorios import MotivoRecordatorio, TareaRecordatorio
 from app.domain.turnos import HistorialDeCambio, RecursoInexistenteError, TipoCambio, Turno
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -42,6 +46,29 @@ class _CambiarEstadoTurno:
 
 class ConfirmarTurno(_CambiarEstadoTurno):
     _tipo = TipoCambio.CONFIRMADO
+
+    def __init__(
+        self,
+        unidad_de_trabajo: Callable[[], UnidadDeTrabajo],
+        reloj: Callable[[], datetime],
+        cola_recordatorios: ColaRecordatorios = ColaRecordatoriosNoOp(),
+    ) -> None:
+        super().__init__(unidad_de_trabajo, reloj)
+        self._cola_recordatorios = cola_recordatorios
+
+    def ejecutar(self, solicitud: SolicitudCambioDeEstado) -> Turno:
+        confirmado = super().ejecutar(solicitud)
+        try:
+            self._cola_recordatorios.encolar(
+                TareaRecordatorio(turno_id=confirmado.id, motivo=MotivoRecordatorio.CONFIRMADO)
+            )
+        except Exception:
+            logger.warning(
+                "No se pudo encolar el recordatorio de confirmación para el turno '%s' (RN-EX-02).",
+                confirmado.id,
+                exc_info=True,
+            )
+        return confirmado
 
     def _transicionar(self, turno: Turno) -> Turno:
         return turno.confirmar()

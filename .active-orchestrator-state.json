@@ -262,6 +262,12 @@
         "path": "openspec/changes/archive/2026-11-02-autenticar-con-jwt",
         "stack": "FastAPI + SQLAlchemy + PostgreSQL",
         "verify": "330 passed"
+      },
+      {
+        "change": "recordatorio-simulado-con-redis",
+        "path": "openspec/changes/archive/2026-11-02-recordatorio-simulado-con-redis",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL + Redis",
+        "verify": "363 passed"
       }
     ],
     "active": []

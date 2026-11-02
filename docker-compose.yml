@@ -17,11 +17,22 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
   api:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://turnos:turnos@db:5432/turnos
       TEST_DATABASE_URL: postgresql+psycopg://turnos:turnos@db:5432/turnos_test
+      REDIS_URL: redis://redis:6379/0
       # Se toma del entorno o de un .env en la raíz (ignorado por Git). Sin él la API no inicia;
       # los tests generan su propio secreto y no lo necesitan.
       JWT_SECRET: ${JWT_SECRET:-}
@@ -31,6 +42,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   datos-postgres:

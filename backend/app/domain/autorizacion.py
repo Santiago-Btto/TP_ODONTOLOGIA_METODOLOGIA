@@ -22,6 +22,7 @@ class Permiso(StrEnum):
     CANCELAR_TURNO = "cancelar_turno"
     CREAR_BLOQUEO = "crear_bloqueo"
     CONSULTAR_AGENDA = "consultar_agenda"
+    CONSULTAR_RECORDATORIOS = "consultar_recordatorios"
 
 
 PERMISOS_POR_ROL: dict[Rol, frozenset[Permiso]] = {

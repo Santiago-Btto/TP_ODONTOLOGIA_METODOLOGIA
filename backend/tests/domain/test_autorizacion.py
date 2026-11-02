@@ -52,3 +52,10 @@ def test_odontologo_no_consulta_agendas_ajenas(actor: Actor, filtro: str | None)
 @pytest.mark.parametrize("filtro", [None, "profesional-demo-002"])
 def test_recepcion_y_responsable_consultan_cualquier_agenda(actor: Actor, filtro: str | None) -> None:
     verificar_alcance_agenda(actor, filtro)
+
+
+def test_consultar_recordatorios_habilitado_para_recepcion_y_responsable_pero_no_odontologo() -> None:
+    verificar_permiso(RECEPCION, Permiso.CONSULTAR_RECORDATORIOS)
+    verificar_permiso(RESPONSABLE, Permiso.CONSULTAR_RECORDATORIOS)
+    with pytest.raises(AccesoDenegadoError):
+        verificar_permiso(ODONTOLOGO, Permiso.CONSULTAR_RECORDATORIOS)

@@ -5,6 +5,7 @@ from types import TracebackType
 from typing import Protocol, Self
 
 from app.domain.bloqueos import BloqueoDeDisponibilidad
+from app.domain.recordatorios import MotivoRecordatorio, RecordatorioEnviado, TareaRecordatorio
 from app.domain.turnos import Box, HistorialDeCambio, Paciente, Prestacion, Profesional, Turno
 
 
@@ -23,6 +24,10 @@ class RepositorioRecursos(Protocol):
 
 
 class RepositorioTurnos(Protocol):
+    def obtener(self, turno_id: str) -> Turno | None:
+        """Lee el turno por su identificador sin bloquear fila; `None` si no existe."""
+        ...
+
     def activos_que_se_solapan(
         self, profesional_id: str, box_id: str, inicio: datetime, fin: datetime
     ) -> list[Turno]:
@@ -58,6 +63,52 @@ class RepositorioHistoriales(Protocol):
     def agregar(self, historial: HistorialDeCambio) -> None: ...
 
 
+class RepositorioRecordatorios(Protocol):
+    def obtener(self, turno_id: str, motivo: MotivoRecordatorio) -> RecordatorioEnviado | None:
+        """Devuelve el recordatorio ya registrado para `(turno_id, motivo)`, o `None`."""
+        ...
+
+    def agregar(self, recordatorio: RecordatorioEnviado) -> RecordatorioEnviado:
+        """Registra un envío simulado de recordatorio dentro de la transacción actual."""
+        ...
+
+    def listar_por_turno(self, turno_id: str) -> list[RecordatorioEnviado]:
+        """Lista los recordatorios enviados de un turno en orden cronológico ascendente."""
+        ...
+
+
+class ColaRecordatorios(Protocol):
+    def encolar(self, tarea: TareaRecordatorio) -> None:
+        """Encola una tarea de recordatorio para procesamiento asíncrono."""
+        ...
+
+    def desencolar(self) -> TareaRecordatorio | None:
+        """Extrae la siguiente tarea pendiente de la cola, o `None` si está vacía."""
+        ...
+
+
+class ColaRecordatoriosNoOp:
+    """Implementación nula por defecto cuando no se configura una cola externa."""
+
+    def encolar(self, tarea: TareaRecordatorio) -> None:
+        return None
+
+    def desencolar(self) -> TareaRecordatorio | None:
+        return None
+
+
+class NotificadorRecordatorios(Protocol):
+    def enviar_recordatorio(
+        self,
+        turno: Turno,
+        paciente: Paciente,
+        motivo: MotivoRecordatorio,
+        enviado_en: datetime,
+    ) -> RecordatorioEnviado:
+        """Simula el envío del recordatorio y devuelve el registro generado."""
+        ...
+
+
 class LectorAgenda(Protocol):
     def en_rango(
         self,
@@ -77,6 +128,7 @@ class UnidadDeTrabajo(Protocol):
     turnos: RepositorioTurnos
     historiales: RepositorioHistoriales
     bloqueos: RepositorioBloqueos
+    recordatorios: RepositorioRecordatorios
 
     def __enter__(self) -> Self: ...
 

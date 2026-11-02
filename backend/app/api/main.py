@@ -13,6 +13,7 @@ from app.application.autenticacion import (
     TokenExpiradoError,
     TokenInvalidoError,
 )
+from app.application.puertos import ColaRecordatorios
 from app.domain.autorizacion import AccesoDenegadoError
 from app.domain.bloqueos import (
     FechaSinZonaError, IntervaloBloqueoInvalidoError, RecursoDeBloqueoInvalidoError,
@@ -32,6 +33,7 @@ from app.domain.turnos import (
     ReprogramacionSinCambiosError,
     TransicionInvalidaError,
 )
+from app.infrastructure.configuracion import crear_cola_recordatorios_desde_entorno
 from app.infrastructure.db import crear_esquema, crear_fabrica_de_sesiones, crear_motor, url_de_base
 from app.infrastructure.seguridad import ConfiguracionSeguridad, EmisorJWT, HasherArgon2
 
@@ -60,6 +62,7 @@ ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
 def crear_app(
     fabrica: sessionmaker[Session] | None = None,
     seguridad: ConfiguracionSeguridad | None = None,
+    cola_recordatorios: ColaRecordatorios | None = None,
 ) -> FastAPI:
     """Sin `fabrica`, se conecta a DATABASE_URL y crea el esquema al iniciar.
 
@@ -71,6 +74,11 @@ def crear_app(
         configuracion = seguridad if seguridad is not None else ConfiguracionSeguridad.desde_entorno()
         app.state.emisor = EmisorJWT(configuracion)
         app.state.hasher = HasherArgon2()
+        app.state.cola_recordatorios = (
+            cola_recordatorios
+            if cola_recordatorios is not None
+            else crear_cola_recordatorios_desde_entorno()
+        )
         if fabrica is None:
             motor = crear_motor(url_de_base())
             crear_esquema(motor)
