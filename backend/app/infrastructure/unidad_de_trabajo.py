@@ -105,6 +105,23 @@ class TurnosSQLAlchemy:
         # Si una restricción de exclusión lo rechaza, se informa como conflicto de dominio.
         _confirmar_o_traducir(self._sesion, self._sesion.flush)
 
+    def obtener_para_actualizar(self, turno_id: str) -> Turno | None:
+        # FOR UPDATE: una transición concurrente espera y, bajo READ COMMITTED, relee la versión confirmada.
+        fila = self._sesion.scalar(select(TurnoModelo).where(TurnoModelo.id == turno_id).with_for_update())
+        return None if fila is None else _a_dominio(fila)
+
+    def actualizar(self, turno: Turno) -> None:
+        fila = self._sesion.get(TurnoModelo, turno.id)
+        if fila is None:
+            raise RecursoInexistenteError("turno", turno.id)
+        fila.profesional_id = turno.profesional_id
+        fila.box_id = turno.box_id
+        fila.inicio = turno.inicio
+        fila.fin = turno.fin
+        fila.estado = turno.estado.value
+        # La exclusión GiST evalúa la fila nueva aquí; un conflicto se traduce a error de dominio.
+        _confirmar_o_traducir(self._sesion, self._sesion.flush)
+
     def activos_del_recurso_que_se_solapan(
         self, profesional_id: str | None, box_id: str | None, inicio: datetime, fin: datetime
     ) -> list[Turno]:

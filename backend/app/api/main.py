@@ -22,6 +22,7 @@ from app.domain.turnos import (
     ErrorDeDominio,
     IntervaloInvalidoError,
     RecursoInexistenteError,
+    TransicionInvalidaError,
 )
 from app.infrastructure.db import crear_esquema, crear_fabrica_de_sesiones, crear_motor, url_de_base
 
@@ -32,6 +33,7 @@ ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
     ConflictoBloqueoProfesionalError: status.HTTP_409_CONFLICT,
     ConflictoBloqueoBoxError: status.HTTP_409_CONFLICT,
     ConflictoTurnoExistenteError: status.HTTP_409_CONFLICT,
+    TransicionInvalidaError: status.HTTP_409_CONFLICT,
     RecursoDeBloqueoInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     FechaSinZonaError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IntervaloInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,

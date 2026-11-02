@@ -43,6 +43,7 @@ def consultar_agenda(
             box_id=t.box_id,
             inicio=t.inicio.astimezone(UTC),
             fin=t.fin.astimezone(UTC),
+            estado=t.estado.value,
         )
         for t in turnos
     ]

@@ -31,6 +31,7 @@ class TurnoAgendaSalida(BaseModel):
     box_id: str
     inicio: AwareDatetime
     fin: AwareDatetime
+    estado: str
 
 
 class BloqueoEntrada(BaseModel):

@@ -1,6 +1,6 @@
 """Entidades y errores del dominio de turnos. Python puro: sin FastAPI ni SQLAlchemy."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 from enum import StrEnum
 
@@ -36,10 +36,31 @@ class RecursoInexistenteError(ErrorDeDominio):
 
 class EstadoTurno(StrEnum):
     PROGRAMADO = "programado"
+    CONFIRMADO = "confirmado"
+    CANCELADO = "cancelado"
 
 
 class TipoCambio(StrEnum):
     CREADO = "creado"
+    CONFIRMADO = "confirmado"
+    CANCELADO = "cancelado"
+
+
+class TransicionInvalidaError(ErrorDeDominio):
+    codigo = "transicion_invalida"
+
+    def __init__(self, estado: "EstadoTurno", accion: str) -> None:
+        super().__init__(f"No se puede {accion} un turno en estado '{estado.value}'.")
+        self.estado = estado
+        self.accion = accion
+
+
+# Máquina de estados (C-05). Cancelar es terminal; confirmar dos veces no es idempotente.
+_TRANSICIONES: dict[tuple["EstadoTurno", str], "EstadoTurno"] = {
+    (EstadoTurno.PROGRAMADO, "confirmar"): EstadoTurno.CONFIRMADO,
+    (EstadoTurno.PROGRAMADO, "cancelar"): EstadoTurno.CANCELADO,
+    (EstadoTurno.CONFIRMADO, "cancelar"): EstadoTurno.CANCELADO,
+}
 
 
 @dataclass(frozen=True)
@@ -83,6 +104,23 @@ class Turno:
     def __post_init__(self) -> None:
         if self.fin <= self.inicio:
             raise IntervaloInvalidoError()
+
+    @property
+    def activo(self) -> bool:
+        """Un turno cancelado ya no ocupa su intervalo (RN-TU-01)."""
+        return self.estado is not EstadoTurno.CANCELADO
+
+    def confirmar(self) -> "Turno":
+        return self._transicionar("confirmar")
+
+    def cancelar(self) -> "Turno":
+        return self._transicionar("cancelar")
+
+    def _transicionar(self, accion: str) -> "Turno":
+        destino = _TRANSICIONES.get((self.estado, accion))
+        if destino is None:
+            raise TransicionInvalidaError(self.estado, accion)
+        return replace(self, estado=destino)
 
 
 @dataclass(frozen=True)

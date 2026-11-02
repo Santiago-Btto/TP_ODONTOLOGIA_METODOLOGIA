@@ -74,6 +74,7 @@ def test_consulta_diaria_exitosa_por_api_responde_200_con_turnos_y_recursos(
             "box_id": "box-demo-001",
             "inicio": "2030-01-10T12:00:00Z",
             "fin": "2030-01-10T12:30:00Z",
+            "estado": "programado",
         },
         {
             "id": creado_1["id"],
@@ -81,6 +82,7 @@ def test_consulta_diaria_exitosa_por_api_responde_200_con_turnos_y_recursos(
             "box_id": "box-demo-002",
             "inicio": "2030-01-10T14:00:00Z",
             "fin": "2030-01-10T14:30:00Z",
+            "estado": "programado",
         },
     ]
 
@@ -246,4 +248,4 @@ def test_contrato_openapi_de_agenda_documenta_parametros_y_esquema_de_salida(
     assert parametros["profesional_id"]["required"] is False
     assert parametros["box_id"]["required"] is False
     esquema_item = openapi["components"]["schemas"]["TurnoAgendaSalida"]
-    assert set(esquema_item["properties"]) == {"id", "profesional_id", "box_id", "inicio", "fin"}
+    assert set(esquema_item["properties"]) == {"id", "profesional_id", "box_id", "inicio", "fin", "estado"}

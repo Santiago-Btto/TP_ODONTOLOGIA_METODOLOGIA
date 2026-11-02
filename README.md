@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT (C-08) · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02) y el bloqueo de disponibilidad de un profesional o un box (C-03). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03) y la confirmación y cancelación de turnos (C-05). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > La API todavía no tiene autenticación (llega con C-08): es sólo para desarrollo local. Todos los datos son ficticios.
 
@@ -140,6 +140,24 @@ El resultado `201` incluye el ID del bloqueo, el recurso, el intervalo en UTC y 
 | `422` | Recurso omitido o doble, fecha inválida/sin zona, o `fin <= inicio` | `detail` de validación de FastAPI |
 
 La garantía cruzada turno-bloqueo cubre las operaciones de esta API; escrituras SQL directas que eludan los casos de uso no participan de su protocolo de bloqueo. La política clínica para un bloqueo que afecta un turno anterior queda abierta: C-03 lo rechaza conservadoramente y no cancela turnos. La reprogramación llegará con C-04 y los permisos con C-08.
+
+- Confirmar o cancelar un turno (`POST /api/v1/turnos/{turno_id}/confirmar` y `POST /api/v1/turnos/{turno_id}/cancelar`, sin cuerpo):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/confirmar
+curl -X POST http://localhost:8000/api/v1/turnos/ID-DEL-TURNO/cancelar
+```
+
+Transiciones permitidas: `programado → confirmado`, `programado → cancelado` y `confirmado → cancelado`. Cada una registra su evento (`confirmado` / `cancelado`) en el historial dentro de la misma transacción. Un turno cancelado libera su intervalo: se puede volver a reservar o bloquear. Un turno confirmado sigue ocupándolo. La agenda informa el `estado` de cada turno y sigue mostrando los cancelados.
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `200` | Turno actualizado (incluye `estado`) | — |
+| `404` | El turno no existe | `recurso_inexistente` |
+| `409` | Confirmar un confirmado o cancelado, o cancelar un cancelado | `transicion_invalida` |
+| `422` | Identificador de más de 64 caracteres | `detail` de validación de FastAPI |
+
+La ventana de cancelación y la confirmación de turnos vencidos siguen como preguntas abiertas (ver `knowledge-base/10_preguntas_abiertas.md`).
 
 Sin Docker: definir `DATABASE_URL` (ver `backend/.env.example`), ejecutar `python -m app.infrastructure.semillas` y `uvicorn app.api.main:app --reload` desde `backend/`.
 

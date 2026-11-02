@@ -31,6 +31,14 @@ class RepositorioTurnos(Protocol):
 
     def agregar(self, turno: Turno) -> None: ...
 
+    def obtener_para_actualizar(self, turno_id: str) -> Turno | None:
+        """Lee el turno y bloquea su fila hasta commit/rollback; `None` si no existe."""
+        ...
+
+    def actualizar(self, turno: Turno) -> None:
+        """Reemplaza estado, intervalo y recursos del turno ya existente."""
+        ...
+
     def activos_del_recurso_que_se_solapan(
         self, profesional_id: str | None, box_id: str | None, inicio: datetime, fin: datetime
     ) -> list[Turno]:
