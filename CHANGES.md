@@ -147,7 +147,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `05_reglas_de_negocio.md` §RN-TU, `06_funcionalidades.md` §US-005, `10_preguntas_abiertas.md`
 
 ### [C-08] `autenticar-con-jwt`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-02-autenticar-con-jwt/` (330 tests en verde contra PostgreSQL real). JWT HS256 + Argon2id, matriz RBAC propuesta en `backend/app/domain/autorizacion.py`, `actor_id` en el historial; rate limiting, CORS y revocación quedan para C-09.
 - **Scope**: Usuarios y roles (recepción, odontólogo/a, responsable) con contraseñas hasheadas; `POST /api/v1/auth/token` (OAuth2 password flow) que emite JWT firmado con `JWT_SECRET` de entorno; dependencia FastAPI que protege todas las rutas `/api/v1`; actor trazable en el historial. Tests: token válido, expirado, firma inválida, acceso denegado por rol. Ningún secreto versionado.
 - **Dependencias**: C-01b
 - **Governance**: CRITICO
