@@ -140,7 +140,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `05_reglas_de_negocio.md` §RN-DI-02 a RN-DI-04 y RN-TU-02, `06_funcionalidades.md` §US-004
 
 ### [C-05] `cancelar-y-confirmar-turnos`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-02-cancelar-y-confirmar-turnos/` (181 tests en verde contra PostgreSQL real). Rutas `POST /api/v1/turnos/{id}/confirmar` y `/cancelar`; la agenda informa `estado`.
 - **Scope**: `CancelarTurno` / `ConfirmarTurno` y sus endpoints; un turno cancelado deja de participar de la restricción de exclusión (`WHERE estado <> 'cancelado'`) y de la validación; historial `cancelado` / `confirmado`. Tests: cancelar libera el intervalo, confirmar conserva la reserva, transiciones inválidas no alteran estado.
 - **Dependencias**: C-01b
 - **Governance**: MEDIO
