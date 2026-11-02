@@ -192,7 +192,10 @@
       "type": "integración MCP (no es skill)",
       "transport": "stdio",
       "config": "~/.codex/config.toml (global, fuera del repositorio)",
-      "tools": ["resolve-library-id", "query-docs"],
+      "tools": [
+        "resolve-library-id",
+        "query-docs"
+      ],
       "added": "2026-10-29",
       "docs": "docs/skills-mcp/context7-configuracion.md"
     }
@@ -229,6 +232,36 @@
         "path": "openspec/changes/archive/2026-10-08-crear-turno-sin-solapamientos-fastapi",
         "stack": "FastAPI + SQLAlchemy + PostgreSQL",
         "verify": "40 passed"
+      },
+      {
+        "change": "consultar-agenda",
+        "path": "openspec/changes/archive/2026-10-30-consultar-agenda",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "73 passed"
+      },
+      {
+        "change": "bloquear-disponibilidad",
+        "path": "openspec/changes/archive/2026-10-30-bloquear-disponibilidad",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "148 passed"
+      },
+      {
+        "change": "cancelar-y-confirmar-turnos",
+        "path": "openspec/changes/archive/2026-11-02-cancelar-y-confirmar-turnos",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "181 passed"
+      },
+      {
+        "change": "reprogramar-turno-atomicamente",
+        "path": "openspec/changes/archive/2026-11-02-reprogramar-turno-atomicamente",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "234 passed"
+      },
+      {
+        "change": "autenticar-con-jwt",
+        "path": "openspec/changes/archive/2026-11-02-autenticar-con-jwt",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "330 passed"
       }
     ],
     "active": []
