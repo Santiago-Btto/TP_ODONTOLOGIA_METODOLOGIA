@@ -90,4 +90,4 @@ El sistema SHALL exponer el endpoint autenticado `GET /api/v1/turnos/{turno_id}/
 
 - **DADO** un identificador de turno inexistente o un actor con rol `odontologo`
 - **CUANDO** se invoca `GET /api/v1/turnos/{turno_id}/recordatorios`
-- **ENTONCES** el sistema responde `404` (`TURNO_NO_ENCONTRADO`) si el turno no existe para un rol autorizado, o `403` (`PERMISO_DENEGADO`) si el actor tiene rol `odontologo`
+- **ENTONCES** el sistema responde `404` (`recurso_inexistente`) si el turno no existe para un rol autorizado, o `403` (`acceso_denegado`) si el actor tiene rol `odontologo`

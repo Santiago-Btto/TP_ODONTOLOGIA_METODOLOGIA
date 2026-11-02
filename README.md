@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05), la autenticación con JWT y roles (C-08) y el recordatorio simulado con Redis (C-16). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05), la autenticación con JWT y roles (C-08), el recordatorio simulado con Redis (C-16) y el alta y búsqueda de pacientes con datos mínimos (C-17). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > Todas las rutas `/api/v1` exigen un token JWT (C-08). La API sigue siendo interna: rate limiting, CORS y exposición pública llegan con C-09. Todos los datos son ficticios.
 
@@ -94,7 +94,7 @@ Todos los ejemplos de abajo llevan `-H "Authorization: Bearer $TOKEN"`. En http:
 
 | Rol | Puede |
 |---|---|
-| `recepcion`, `responsable` | Crear, reprogramar, confirmar y cancelar turnos; crear bloqueos; consultar cualquier agenda y consultar recordatorios simulados |
+| `recepcion`, `responsable` | Registrar y buscar pacientes; crear, reprogramar, confirmar y cancelar turnos; crear bloqueos; consultar cualquier agenda y consultar recordatorios simulados |
 | `odontologo` | Sólo consultar su propia agenda (`profesional_id` = el profesional vinculado a su usuario) |
 
 | Respuesta | Cuándo | `codigo` |
@@ -108,6 +108,23 @@ Todos los ejemplos de abajo llevan `-H "Authorization: Bearer $TOKEN"`. En http:
 
 - Documentación interactiva: http://localhost:8000/docs
 - Salud: `GET http://localhost:8000/health`
+- Alta y búsqueda de pacientes con datos mínimos (`C-17`, `POST /api/v1/pacientes` y `GET /api/v1/pacientes`, roles `recepcion` y `responsable`):
+
+  Registra únicamente datos mínimos operativos (`id` opcional, `nombre_mostrado` obligatorio y `contacto` opcional) y rechaza con `422` cualquier campo clínico o personal no permitido (`historia_clinica`, `odontograma`, `dni`, `obra_social`, etc., conforme a `DD-04`). Todos los datos en semillas y pruebas son manifiestamente ficticios (`"Paciente Demo ..."`).
+
+```bash
+curl -X POST http://localhost:8000/api/v1/pacientes -H "Authorization: Bearer $TOKEN" -H "content-type: application/json" -d '{"nombre_mostrado":"Paciente Demo Ficticio 010","contacto":"+54 9 11 0000-0010"}'
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/v1/pacientes?q=Demo"
+```
+
+| Respuesta | Cuándo | `codigo` |
+|---|---|---|
+| `201` / `200` | Paciente dado de alta (`POST`) o listado ordenado por `nombre_mostrado` e `id` (`GET`) | — |
+| `401` | Sin token o token inválido/expirado | `no_autenticado` / `token_invalido` / `token_expirado` |
+| `403` | Rol sin permiso (`odontologo`) | `acceso_denegado` |
+| `409` | `id` o `contacto` ya registrado | `paciente_duplicado` |
+| `422` | `nombre_mostrado` o `id` vacío/en blanco, o presencia de campos clínicos/no permitidos | `datos_paciente_invalidos` / `detail` de FastAPI |
+
 - Alta de turno:
 
 ```bash
@@ -236,7 +253,7 @@ Sin Docker: definir `DATABASE_URL`, `REDIS_URL` (opcional; si se omite usa cola 
 ## Proceso (SDD / OPSX)
 
 - Discovery: [docs/discovery/informe-discovery.md](docs/discovery/informe-discovery.md) (y su PDF).
-- Specs vigentes: [openspec/specs/](openspec/specs/) (creación, agenda, bloqueos, ciclo de vida, reprogramación, autenticación).
+- Specs vigentes: [openspec/specs/](openspec/specs/) (creación, agenda, bloqueos, ciclo de vida, reprogramación, autenticación, recordatorios, pacientes).
 - Changes archivados: [openspec/changes/archive/](openspec/changes/archive/).
 - Evidencias de entrega: [docs/evidencias/](docs/evidencias/).
 

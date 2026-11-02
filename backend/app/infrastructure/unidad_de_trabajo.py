@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from types import TracebackType
 from typing import Self
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -18,6 +18,7 @@ from app.domain.turnos import (
     EstadoTurno,
     HistorialDeCambio,
     Paciente,
+    PacienteDuplicadoError,
     Prestacion,
     Profesional,
     RecursoInexistenteError,
@@ -26,6 +27,8 @@ from app.domain.turnos import (
 )
 from app.infrastructure.modelos import (
     RESTRICCION_BOX,
+    RESTRICCION_PACIENTE_CONTACTO,
+    RESTRICCION_PACIENTE_PK,
     RESTRICCION_PROFESIONAL,
     BloqueoModelo,
     BoxModelo,
@@ -45,7 +48,7 @@ class RecursosSQLAlchemy:
 
     def paciente(self, id_: str) -> Paciente | None:
         fila = self._sesion.get(PacienteModelo, id_)
-        return None if fila is None else Paciente(fila.id, fila.nombre_mostrado)
+        return None if fila is None else _paciente_a_dominio(fila)
 
     def profesional(self, id_: str) -> Profesional | None:
         fila = self._sesion.get(ProfesionalModelo, id_)
@@ -76,6 +79,50 @@ class RecursosSQLAlchemy:
             )
             if encontrado is None:
                 raise RecursoInexistenteError("box", box_id)
+
+
+class PacientesSQLAlchemy:
+    def __init__(self, sesion: Session) -> None:
+        self._sesion = sesion
+
+    def obtener(self, id_: str) -> Paciente | None:
+        fila = self._sesion.get(PacienteModelo, id_)
+        return None if fila is None else _paciente_a_dominio(fila)
+
+    def obtener_por_contacto(self, contacto: str) -> Paciente | None:
+        normalizado = contacto.strip().lower()
+        if not normalizado:
+            return None
+        consulta = select(PacienteModelo).where(func.lower(PacienteModelo.contacto) == normalizado)
+        fila = self._sesion.scalar(consulta)
+        return None if fila is None else _paciente_a_dominio(fila)
+
+    def agregar(self, paciente: Paciente) -> None:
+        self._sesion.add(
+            PacienteModelo(
+                id=paciente.id,
+                nombre_mostrado=paciente.nombre_mostrado,
+                contacto=paciente.contacto,
+            )
+        )
+        _confirmar_o_traducir(self._sesion, self._sesion.flush)
+
+    def buscar(self, consulta: str | None = None) -> list[Paciente]:
+        sentencia = select(PacienteModelo)
+        if consulta is not None and consulta.strip():
+            patron = f"%{consulta.strip()}%"
+            sentencia = sentencia.where(
+                or_(
+                    PacienteModelo.nombre_mostrado.ilike(patron),
+                    PacienteModelo.id.ilike(patron),
+                    PacienteModelo.contacto.ilike(patron),
+                )
+            )
+        sentencia = sentencia.order_by(PacienteModelo.nombre_mostrado.asc(), PacienteModelo.id.asc())
+        return [_paciente_a_dominio(fila) for fila in self._sesion.scalars(sentencia)]
+
+
+RepositorioPacientesSQLAlchemy = PacientesSQLAlchemy
 
 
 class TurnosSQLAlchemy:
@@ -224,6 +271,7 @@ class UnidadDeTrabajoSQLAlchemy:
         # Tras esperar FOR UPDATE, la próxima sentencia debe ver el commit ganador.
         self._sesion.connection(execution_options={"isolation_level": "READ COMMITTED"})
         self.recursos = RecursosSQLAlchemy(self._sesion)
+        self.pacientes = PacientesSQLAlchemy(self._sesion)
         self.turnos = TurnosSQLAlchemy(self._sesion)
         self.historiales = HistorialesSQLAlchemy(self._sesion)
         self.bloqueos = BloqueosSQLAlchemy(self._sesion)
@@ -303,7 +351,13 @@ def _traducir(error: IntegrityError) -> Exception:
         return ConflictoProfesionalError()
     if restriccion == RESTRICCION_BOX:
         return ConflictoBoxError()
+    if restriccion in (RESTRICCION_PACIENTE_PK, RESTRICCION_PACIENTE_CONTACTO):
+        return PacienteDuplicadoError()
     return error
+
+
+def _paciente_a_dominio(fila: PacienteModelo) -> Paciente:
+    return Paciente(id=fila.id, nombre_mostrado=fila.nombre_mostrado, contacto=fila.contacto)
 
 
 def _resumen_a_json(resumen: ResumenTurno | None) -> dict[str, str] | None:

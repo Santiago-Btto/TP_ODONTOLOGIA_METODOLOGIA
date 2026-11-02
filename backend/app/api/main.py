@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.api import agenda, auth, bloqueos, turnos
+from app.api import agenda, auth, bloqueos, pacientes, turnos
 from app.application.autenticacion import (
     CredencialesInvalidasError,
     NoAutenticadoError,
@@ -26,9 +26,11 @@ from app.domain.disponibilidad import (
     ConflictoTurnoExistenteError,
 )
 from app.domain.turnos import (
+    DatosPacienteInvalidosError,
     DuracionInvalidaError,
     ErrorDeDominio,
     IntervaloInvalidoError,
+    PacienteDuplicadoError,
     RecursoInexistenteError,
     ReprogramacionSinCambiosError,
     TransicionInvalidaError,
@@ -50,12 +52,14 @@ ESTADO_HTTP: dict[type[ErrorDeDominio], int] = {
     ConflictoBloqueoBoxError: status.HTTP_409_CONFLICT,
     ConflictoTurnoExistenteError: status.HTTP_409_CONFLICT,
     TransicionInvalidaError: status.HTTP_409_CONFLICT,
+    PacienteDuplicadoError: status.HTTP_409_CONFLICT,
     RecursoDeBloqueoInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     FechaSinZonaError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IntervaloInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IntervaloBloqueoInvalidoError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     DuracionInvalidaError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     ReprogramacionSinCambiosError: status.HTTP_422_UNPROCESSABLE_ENTITY,
+    DatosPacienteInvalidosError: status.HTTP_422_UNPROCESSABLE_ENTITY,
 }
 
 
@@ -100,6 +104,7 @@ def crear_app(
     app.include_router(turnos.router)
     app.include_router(agenda.router)
     app.include_router(bloqueos.router)
+    app.include_router(pacientes.router)
 
     @app.exception_handler(ErrorDeDominio)
     async def error_de_dominio(_: Request, error: ErrorDeDominio) -> JSONResponse:

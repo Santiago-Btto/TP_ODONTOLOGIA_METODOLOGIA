@@ -34,6 +34,20 @@ class RecursoInexistenteError(ErrorDeDominio):
         self.recurso_id = recurso_id
 
 
+class DatosPacienteInvalidosError(ErrorDeDominio):
+    codigo = "datos_paciente_invalidos"
+
+    def __init__(self, detalle: str = "El identificador y el nombre mostrado del paciente son obligatorios.") -> None:
+        super().__init__(detalle)
+
+
+class PacienteDuplicadoError(ErrorDeDominio):
+    codigo = "paciente_duplicado"
+
+    def __init__(self, detalle: str = "Ya existe un paciente registrado con los mismos datos únicos.") -> None:
+        super().__init__(detalle)
+
+
 class EstadoTurno(StrEnum):
     PROGRAMADO = "programado"
     CONFIRMADO = "confirmado"
@@ -75,6 +89,21 @@ _TRANSICIONES: dict[tuple["EstadoTurno", str], "EstadoTurno"] = {
 class Paciente:
     id: str
     nombre_mostrado: str
+    contacto: str | None = None
+
+    def __post_init__(self) -> None:
+        id_limpio = self.id.strip()
+        nombre_limpio = self.nombre_mostrado.strip()
+        if not id_limpio or not nombre_limpio:
+            raise DatosPacienteInvalidosError()
+        contacto_limpio = self.contacto.strip() if self.contacto is not None else None
+        object.__setattr__(self, "id", id_limpio)
+        object.__setattr__(self, "nombre_mostrado", nombre_limpio)
+        object.__setattr__(self, "contacto", contacto_limpio if contacto_limpio else None)
+
+    @property
+    def contacto_normalizado(self) -> str | None:
+        return None if self.contacto is None else self.contacto.lower()
 
 
 @dataclass(frozen=True)

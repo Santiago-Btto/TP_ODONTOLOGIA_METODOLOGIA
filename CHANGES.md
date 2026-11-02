@@ -161,7 +161,7 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `02_descripcion_general.md` §Integraciones, `05_reglas_de_negocio.md` §RN-EX-02
 
 ### [C-17] `registrar-paciente-minimo`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-02-registrar-paciente-minimo/` (409 tests en verde contra PostgreSQL real). Alta (`POST /api/v1/pacientes`) y búsqueda (`GET /api/v1/pacientes`) con `nombre_mostrado` y `contacto` opcional, unicidad por `id` y `LOWER(contacto)`, rechazo estricto de campos clínicos o no permitidos (`422` vía `extra="forbid"`) y datos exclusivamente ficticios.
 - **Scope**: Datos mínimos de paciente exigidos por la sección D: alta y búsqueda (`POST/GET /api/v1/pacientes`) con nombre mostrado y contacto opcional; sin datos clínicos; seeds y tests exclusivamente ficticios. Tests: alta válida, duplicado, búsqueda y rechazo de campos no permitidos.
 - **Dependencias**: C-01b
 - **Governance**: ALTO (datos personales)

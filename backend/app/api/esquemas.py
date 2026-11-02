@@ -104,3 +104,17 @@ class UsuarioSalida(BaseModel):
 class ErrorSalida(BaseModel):
     codigo: str
     detalle: str
+
+
+class PacienteEntrada(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str | None = Field(default=None, min_length=1, max_length=64)
+    nombre_mostrado: str = Field(min_length=1, max_length=200)
+    contacto: str | None = Field(default=None, max_length=200)
+
+
+class PacienteSalida(BaseModel):
+    id: str
+    nombre_mostrado: str
+    contacto: str | None = None

@@ -9,6 +9,24 @@ from app.domain.recordatorios import MotivoRecordatorio, RecordatorioEnviado, Ta
 from app.domain.turnos import Box, HistorialDeCambio, Paciente, Prestacion, Profesional, Turno
 
 
+class RepositorioPacientes(Protocol):
+    def obtener(self, id_: str) -> Paciente | None:
+        """Devuelve el paciente por identificador, o `None` si no existe."""
+        ...
+
+    def obtener_por_contacto(self, contacto: str) -> Paciente | None:
+        """Devuelve el paciente cuyo contacto coincide (ignorando mayúsculas/espacios), o `None`."""
+        ...
+
+    def agregar(self, paciente: Paciente) -> None:
+        """Registra un nuevo paciente en la transacción actual."""
+        ...
+
+    def buscar(self, consulta: str | None = None) -> list[Paciente]:
+        """Lista pacientes ordenados por `nombre_mostrado` e `id`, filtrando opcionalmente por `consulta`."""
+        ...
+
+
 class RepositorioRecursos(Protocol):
     def paciente(self, id_: str) -> Paciente | None: ...
 
@@ -125,6 +143,7 @@ class UnidadDeTrabajo(Protocol):
     """Transacción: lo agregado sólo se persiste con `commit`; salir sin commit descarta todo."""
 
     recursos: RepositorioRecursos
+    pacientes: RepositorioPacientes
     turnos: RepositorioTurnos
     historiales: RepositorioHistoriales
     bloqueos: RepositorioBloqueos

@@ -268,6 +268,12 @@
         "path": "openspec/changes/archive/2026-11-02-recordatorio-simulado-con-redis",
         "stack": "FastAPI + SQLAlchemy + PostgreSQL + Redis",
         "verify": "363 passed"
+      },
+      {
+        "change": "registrar-paciente-minimo",
+        "path": "openspec/changes/archive/2026-11-02-registrar-paciente-minimo",
+        "stack": "FastAPI + SQLAlchemy + PostgreSQL",
+        "verify": "409 passed"
       }
     ],
     "active": []

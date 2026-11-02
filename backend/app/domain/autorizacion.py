@@ -23,6 +23,8 @@ class Permiso(StrEnum):
     CREAR_BLOQUEO = "crear_bloqueo"
     CONSULTAR_AGENDA = "consultar_agenda"
     CONSULTAR_RECORDATORIOS = "consultar_recordatorios"
+    REGISTRAR_PACIENTE = "registrar_paciente"
+    CONSULTAR_PACIENTES = "consultar_pacientes"
 
 
 PERMISOS_POR_ROL: dict[Rol, frozenset[Permiso]] = {

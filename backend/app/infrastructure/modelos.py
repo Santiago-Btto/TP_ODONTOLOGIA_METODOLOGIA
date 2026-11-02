@@ -14,12 +14,15 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     event,
+    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 RESTRICCION_PROFESIONAL = "turnos_sin_solapamiento_profesional"
 RESTRICCION_BOX = "turnos_sin_solapamiento_box"
+RESTRICCION_PACIENTE_PK = "pacientes_pkey"
+RESTRICCION_PACIENTE_CONTACTO = "uq_pacientes_contacto_lower"
 
 
 class Base(DeclarativeBase):
@@ -31,6 +34,15 @@ class PacienteModelo(Base):
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     nombre_mostrado: Mapped[str] = mapped_column(String(200))
+    contacto: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    __table_args__ = (
+        Index(
+            RESTRICCION_PACIENTE_CONTACTO,
+            func.lower(contacto),
+            unique=True,
+        ),
+    )
 
 
 class ProfesionalModelo(Base):

@@ -2,7 +2,7 @@
 
 ## Context
 
-Los cambios `C-01b` a `C-05` y `C-08` establecieron el núcleo transaccional de turnos en PostgreSQL (`CrearTurno`, `ConfirmarTurno`, `CancelarTurno`) y la autenticación/autorización con JWT. La sección D del Discovery y el cambio `C-16` en `CHANGES.md` requieren incorporar un mecanismo asíncrono respaldado por Redis para recordar turnos al crearse o confirmarse, procesado por un worker mediante un `NotificadorSimulado` que registra el envío sin integrar WhatsApp real (diferido a `C-12`).
+Los cambios `C-01b` a `C-05` y `C-08` establecieron el núcleo transaccional de turnos en PostgreSQL (`CrearTurno`, `ConfirmarTurno`, `CancelarTurno`) y la autenticación/autorización con JWT. La sección D del Discovery y el cambio `C-16` en `CHANGES.md` requieren incorporar un mecanismo asíncrono respaldado por Redis para recordar turnos al crearse o confirmarse, procesado por un worker mediante un `NotificadorSimulado` que registra el envío sin integrar WhatsApp real (diferido a `C-10`).
 
 Además, la regla de negocio `RN-EX-02` exige que una caída o indisponibilidad de Redis nunca impida consultar la agenda ni registrar o actualizar turnos en PostgreSQL. El diseño debe mantener la arquitectura hexagonal síncrona vigente (`domain` sin dependencias de infraestructura, `application` orquestando puertos y `infrastructure` implementando adaptadores SQLAlchemy y Redis).
 
@@ -18,7 +18,7 @@ Además, la regla de negocio `RN-EX-02` exige que una caída o indisponibilidad 
 - Agregar el servicio `redis` (`redis:7-alpine`) y la variable `REDIS_URL` en `docker-compose.yml` y `backend/.env.example`.
 
 **Non-Goals:**
-- Integración real con WhatsApp Business API o proveedores externos de mensajería (`C-12`).
+- Integración real con WhatsApp Business API o proveedores externos de mensajería (`C-10`).
 - Reemplazar el stack síncrono de FastAPI/SQLAlchemy por `asyncio`.
 - Planificación temporal diferida (cron/scheduler de "24 h antes"); el alcance de `C-16` en `CHANGES.md` especifica encolar la tarea al crear/confirmar el turno y procesarla con el worker y `NotificadorSimulado`.
 
@@ -51,9 +51,9 @@ Además, la regla de negocio `RN-EX-02` exige que una caída o indisponibilidad 
 
 ### 4. Contrato HTTP y autorización RBAC
 
-- **Decisión:** Agregar `Permiso.CONSULTAR_RECORDATORIOS = "consultar_recordatorios"` en `backend/app/domain/autorizacion.py`, habilitado para `Rol.RECEPCION` y `Rol.RESPONSABLE` (los mismos roles que operan recordatorios y comunicación con pacientes; `Rol.ODONTOLOGO` recibe `403 PERMISO_DENEGADO`).
+- **Decisión:** Agregar `Permiso.CONSULTAR_RECORDATORIOS = "consultar_recordatorios"` en `backend/app/domain/autorizacion.py`, habilitado para `Rol.RECEPCION` y `Rol.RESPONSABLE` (los mismos roles que operan recordatorios y comunicación con pacientes; `Rol.ODONTOLOGO` recibe `403 acceso_denegado`).
 - Exponer `GET /api/v1/turnos/{turno_id}/recordatorios` en `backend/app/api/turnos.py`:
-  - Verifica que el turno exista (`404 TURNO_NO_ENCONTRADO` si no existe).
+  - Verifica que el turno exista (`404 recurso_inexistente` si no existe).
   - Devuelve `200 OK` con `list[RecordatorioSimuladoSalida]` (`id`, `turno_id`, `motivo`, `destinatario`, `enviado_en`) ordenada por `enviado_en ASC, id ASC`.
 
 ### 5. Configuración Docker Compose y estrategia de pruebas
@@ -78,4 +78,4 @@ Además, la regla de negocio `RN-EX-02` exige que una caída o indisponibilidad 
 
 ## Open Questions
 
-- Ninguna pregunta bloqueante para `C-16`. El formato de plantilla y credenciales reales de WhatsApp pertenecen a `C-12` (`OP-06`).
+- Ninguna pregunta bloqueante para `C-16`. El formato de plantilla y credenciales reales de WhatsApp pertenecen a `C-10` (`OP-06`).

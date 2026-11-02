@@ -8,8 +8,16 @@ from app.infrastructure.modelos import BoxModelo, PacienteModelo, PrestacionMode
 
 def cargar_semillas(sesion: Session) -> None:
     for fila in (
-        PacienteModelo(id="paciente-demo-001", nombre_mostrado="Paciente Demo Ficticia 001"),
-        PacienteModelo(id="paciente-demo-002", nombre_mostrado="Paciente Demo Ficticio 002"),
+        PacienteModelo(
+            id="paciente-demo-001",
+            nombre_mostrado="Paciente Demo Ficticia 001",
+            contacto="+54 9 11 0000-0001",
+        ),
+        PacienteModelo(
+            id="paciente-demo-002",
+            nombre_mostrado="Paciente Demo Ficticio 002",
+            contacto="paciente.demo.002@example.invalid",
+        ),
         ProfesionalModelo(id="profesional-demo-001", nombre_mostrado="Profesional Demo Ficticio 001"),
         ProfesionalModelo(id="profesional-demo-002", nombre_mostrado="Profesional Demo Ficticio 002"),
         BoxModelo(id="box-demo-001", nombre="Box Demo 001"),

@@ -59,3 +59,15 @@ def test_consultar_recordatorios_habilitado_para_recepcion_y_responsable_pero_no
     verificar_permiso(RESPONSABLE, Permiso.CONSULTAR_RECORDATORIOS)
     with pytest.raises(AccesoDenegadoError):
         verificar_permiso(ODONTOLOGO, Permiso.CONSULTAR_RECORDATORIOS)
+
+
+
+@pytest.mark.parametrize("permiso", ["REGISTRAR_PACIENTE", "CONSULTAR_PACIENTES"])
+def test_permisos_de_pacientes_habilitados_para_recepcion_y_responsable_pero_no_odontologo(
+    permiso: str,
+) -> None:
+    permiso_enum = getattr(Permiso, permiso)
+    verificar_permiso(RECEPCION, permiso_enum)
+    verificar_permiso(RESPONSABLE, permiso_enum)
+    with pytest.raises(AccesoDenegadoError):
+        verificar_permiso(ODONTOLOGO, permiso_enum)
