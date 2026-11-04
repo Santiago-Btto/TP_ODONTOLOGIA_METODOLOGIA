@@ -168,14 +168,14 @@ Tienen la misma longitud `C-01b → C-03 → C-04 → C-06` y `C-01b → C-02 �
 - **Leer antes**: `04_modelo_de_datos.md` §Paciente, `09_decisiones_y_supuestos.md` §DD-04, `10_preguntas_abiertas.md` §Datos mínimos
 
 ### [C-15] `agenda-web-react`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-03-agenda-web-react/` (24 pruebas frontend, 409 backend contra PostgreSQL real; build TypeScript `strict`, imagen Docker y proxy de mismo origen verificados).
 - **Scope**: `frontend/` con React + TypeScript (`strict`) + Vite: login contra C-08, vista diaria/semanal por profesional y box (C-02) y formulario de alta que muestra la causa del rechazo (409/422). La UI no recalcula disponibilidad. Servicio `frontend` en Docker Compose. Tests de componentes y de cliente API.
 - **Dependencias**: C-02, C-08, C-17
 - **Governance**: MEDIO
 - **Leer antes**: `01_vision_y_objetivos.md`, `06_funcionalidades.md`, `07_flujos_principales.md`; referencias UX del Discovery (Simples Dental, Dentios, DentalQub)
 
 ### [C-06] `flujo-mvp-docker-compose`
-- **Estado**: `[ ]` pendiente
+- **Estado**: `[x]` completado y archivado en `openspec/changes/archive/2026-11-03-flujo-mvp-docker-compose/`. Verificación: 419 tests backend con PostgreSQL real, 24 tests frontend y build TypeScript estricto; E2E HTTP aislado aprobado tres veces; arranque y reinicio Compose con semillas y usuario demo idempotentes. La API respondió `200` en salud y pacientes con Redis detenido.
 - **Scope**: `docker compose up` levanta db, redis, api y frontend con seeds ficticios; prueba E2E por API: login, alta de paciente, alta de turno, consulta, bloqueo, rechazo por conflicto, reprogramación, cancelación, reutilización del horario y recordatorio simulado registrado. Documentación de arranque.
 - **Dependencias**: C-02, C-04, C-05, C-15, C-16, C-17
 - **Governance**: BAJO
