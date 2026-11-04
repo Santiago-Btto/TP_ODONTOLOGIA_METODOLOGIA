@@ -4,7 +4,7 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 **Stack:** Python 3.12 · FastAPI · SQLAlchemy 2.0 · PostgreSQL 17 · JWT · Redis (C-16) · Docker Compose — React + TypeScript + Vite (C-15).
 
-**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05), la autenticación con JWT y roles (C-08), el recordatorio simulado con Redis (C-16) y el alta y búsqueda de pacientes con datos mínimos (C-17). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
+**Estado actual:** están implementados el alta de turnos sin solapamientos (C-01b), la consulta de agenda (C-02), el bloqueo de disponibilidad de un profesional o un box (C-03), la reprogramación atómica (C-04), la confirmación y cancelación de turnos (C-05), la autenticación con JWT y roles (C-08), el recordatorio simulado con Redis (C-16), el alta y búsqueda de pacientes con datos mínimos (C-17), la agenda web React (C-15) y el flujo MVP integrado en Compose (C-06). Los intervalos son semiabiertos `[inicio, fin)`: dos intervalos que sólo se tocan son compatibles. PostgreSQL impone la exclusión entre turnos; los casos de uso coordinan con bloqueos de fila la creación de turnos y bloqueos.
 
 > Todas las rutas `/api/v1` exigen un token JWT (C-08). La API sigue siendo interna: rate limiting, CORS y exposición pública llegan con C-09. Todos los datos son ficticios.
 
@@ -12,7 +12,9 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 ```text
 backend/            API FastAPI, dominio, casos de uso, persistencia y tests (pytest)
-docker-compose.yml  PostgreSQL + Redis + API para desarrollo local
+frontend/           React + TypeScript strict + Vite; tests y build Nginx
+docker-compose.yml  PostgreSQL + Redis + bootstrap Demo + API + frontend + worker
+docker-compose.e2e.yml  Override sin puertos para el E2E aislado
 knowledge-base/     Base de conocimiento del proyecto
 .agents/skills/     Skills locales versionadas y skills OPSX del proyecto
 openspec/           Specs vigentes y changes archivados
@@ -29,14 +31,15 @@ Los tests de dominio y de casos de uso no necesitan base de datos. Los de persis
 Requisitos: Docker con Docker Compose v2.
 
 ```bash
-docker compose up -d db redis
+python backend/scripts/preparar_entorno.py
+docker compose up -d --build
 ```
 
 ```bash
-docker compose run --rm api pytest
+docker compose run --rm --no-deps api pytest
 ```
 
-El servicio `db` crea la base `turnos` y la base descartable `turnos_test` (credenciales de desarrollo `turnos` / `turnos`, sólo válidas en este compose).
+El servicio `db` crea la base `turnos` y la base descartable `turnos_test` (credenciales de desarrollo `turnos` / `turnos`, sólo válidas en este compose). La suite usa exclusivamente `turnos_test` y borra su esquema. `preparar_entorno.py` genera secretos aleatorios en `.env` local ignorado por Git y conserva los mismos valores al repetirse.
 
 ### Opción B — Python y PostgreSQL locales
 
@@ -62,33 +65,61 @@ En PowerShell: `$env:TEST_DATABASE_URL = "postgresql+psycopg://..."; .venv\Scrip
 
 Resultado esperado: la suite completa en verde. Para C-03 se verificó además la carrera concurrente entre turno y bloqueo contra PostgreSQL real.
 
-## Levantar la API
+### Frontend C-15
 
-1. Generar un secreto propio para firmar los JWT y dejarlo en un `.env` en la raíz (está en `.gitignore`; nunca se versiona):
+Requisitos para desarrollo sin contenedores: Node.js 22 o posterior y la API levantada en `localhost:8000`. El servidor Vite redirige `/api` a la API; no requiere CORS. La imagen de Compose sirve los archivos compilados con Nginx y redirige `/api/` por el mismo origen.
 
 ```bash
-echo "JWT_SECRET=$(python -c 'import secrets; print(secrets.token_urlsafe(48))')" > .env
+cd frontend
+npm ci
+npm test -- --run
+npm run build
+npm run dev
 ```
 
-2. Levantar los servicios, cargar las semillas ficticias y crear un usuario del personal (la contraseña se pide por consola, mínimo 12 caracteres; roles `recepcion`, `responsable` u `odontologo`):
+En desarrollo, abrir `http://localhost:5173`; con Compose, ejecutar primero `python backend/scripts/preparar_entorno.py`, luego `docker compose up -d --build` y abrir la misma URL. El bootstrap crea `recepcion.demo` automáticamente con la contraseña aleatoria `DEMO_PASSWORD` guardada sólo en el `.env` local; **no hay contraseña predeterminada**. El token JWT sólo permanece en memoria: al recargar o cerrar la página hay que ingresar de nuevo.
+
+La agenda permite ver un día o una semana, filtrar por profesional y box, buscar o registrar pacientes mínimos y crear turnos. El rol `odontologo` sólo ve su profesional vinculado y no presenta controles de pacientes ni de alta. Los errores `409` y `422` muestran el mensaje de la API y conservan el formulario. La zona horaria visible es la del dispositivo; los límites de consulta y horarios enviados llevan zona explícita. Actualmente no hay catálogo de profesionales, boxes o prestaciones: usar los IDs demo `profesional-demo-001`, `box-demo-001` y `prestacion-demo-001` tras cargar las semillas. La API verifica toda disponibilidad y autorización.
+
+## Levantar el MVP completo
+
+Requisitos: Python 3.12 y Docker con Compose v2. Desde la raíz del repositorio:
 
 ```bash
-docker compose up -d
-docker compose run --rm api python -m app.infrastructure.semillas
-docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre recepcion.demo --rol recepcion
-# Odontólogo/a vinculado a su profesional:
-# docker compose run --rm api python -m app.infrastructure.crear_usuario --nombre odontologo.demo --rol odontologo --profesional-id profesional-demo-001
+python backend/scripts/preparar_entorno.py
+docker compose up -d --build
 ```
 
-> Si la base local se creó antes de C-04/C-08/C-16, recrearla (`docker compose down -v`): faltan tablas o columnas nuevas y no hay migraciones hasta C-07.
+Abrir `http://localhost:5173`. El usuario es `recepcion.demo`; abrir el `.env` local en un editor para consultar `DEMO_PASSWORD`. No compartir ni versionar ese archivo. La API responde en `http://localhost:8000/health` y la documentación en `http://localhost:8000/docs`. El frontend usa `/api` por el mismo origen mediante Nginx. El worker consume Redis y sólo registra recordatorios **simulados**: no envía mensajes externos.
 
-3. Obtener un token (OAuth2 password flow) y usarlo en cada request:
+El bootstrap carga automáticamente los pacientes `paciente-demo-001/002`, profesionales `profesional-demo-001/002`, boxes `box-demo-001/002`, prestación `prestacion-demo-001` y el usuario `recepcion.demo`. Todos son ficticios. El primer arranque crea esquema y semillas; los arranques siguientes conservan los datos, el identificador y el hash del usuario sin duplicarlos. No se cargan datos clínicos.
+
+Para comprobar el arranque y la configuración:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/token -d "username=recepcion.demo" -d "password=TU-CONTRASEÑA"
+python backend/scripts/check_compose_mvp.py
+docker compose config --quiet
+docker compose ps
+```
+
+Para detener sin borrar datos: `docker compose down`. Sólo si querés reiniciar intencionalmente **esta instalación de demostración** desde cero, ejecutá `docker compose down -v`: elimina su volumen de PostgreSQL. Si cambiás `DEMO_PASSWORD` en un `.env` que ya tiene usuario creado, el bootstrap falla para evitar modificar su hash silenciosamente; restaurá el valor anterior o reiniciá de manera deliberada el volumen demo. Una base vieja sin las columnas actuales también requiere recreación local hasta C-07, que incorporará migraciones.
+
+Para obtener un token (OAuth2 password flow), usar la contraseña del `.env` local sin registrarla en logs ni en el repositorio:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/token -d "username=recepcion.demo" -d "password=CONTRASEÑA_LOCAL"
 # → {"access_token":"…","token_type":"bearer","expires_in":1800}
 export TOKEN="…"
 ```
+
+Para comprobar **todo el recorrido integrado** dos veces en entornos descartables independientes, sin tocar el volumen habitual ni publicar puertos de prueba:
+
+```bash
+python backend/scripts/ejecutar_e2e.py
+python backend/scripts/ejecutar_e2e.py
+```
+
+La prueba usa API HTTP real y el proxy web: login, paciente, turno, agenda, bloqueo y rechazo `409`, reprogramación, recordatorio simulado, cancelación y reutilización del horario. Calcula fechas futuras en cada ejecución, espera el worker con plazo acotado y desmonta sus contenedores y volumen aunque falle. Si falla, revisar el mensaje de la prueba y `docker compose ps` del entorno habitual; el lanzador nunca imprime el `.env`. `python backend/scripts/check_compose_mvp.py` comprueba también dependencias y variables obligatorias sin revelar sus valores.
 
 Todos los ejemplos de abajo llevan `-H "Authorization: Bearer $TOKEN"`. En http://localhost:8000/docs el botón **Authorize** hace el login.
 
@@ -229,10 +260,10 @@ El nuevo intervalo se valida contra los demás turnos activos y los bloqueos del
 
   Al crear o confirmar un turno, se encola en Redis (`REDIS_URL`) una tarea de recordatorio (`creado` / `confirmado`) exclusivamente tras confirmar la transacción en PostgreSQL. Si Redis no está disponible, el alta, la confirmación y la consulta de agenda siguen operando con normalidad (`RN-EX-02`).
 
-  Para procesar las tareas encoladas con el `NotificadorSimulado` (idempotente por `(turno_id, motivo)` y que omite turnos cancelados):
+  El servicio `worker` de Compose procesa continuamente las tareas con `NotificadorSimulado` (idempotente por `(turno_id, motivo)` y que omite turnos cancelados). Para comprobar su estado:
 
 ```bash
-docker compose run --rm api python -m app.infrastructure.worker_recordatorios --una-vez
+docker compose ps worker
 ```
 
   Consultar los recordatorios simulados registrados de un turno (`recepcion` o `responsable`):
@@ -253,7 +284,7 @@ Sin Docker: definir `DATABASE_URL`, `REDIS_URL` (opcional; si se omite usa cola 
 ## Proceso (SDD / OPSX)
 
 - Discovery: [docs/discovery/informe-discovery.md](docs/discovery/informe-discovery.md) (y su PDF).
-- Specs vigentes: [openspec/specs/](openspec/specs/) (creación, agenda, bloqueos, ciclo de vida, reprogramación, autenticación, recordatorios, pacientes).
+- Specs vigentes: [openspec/specs/](openspec/specs/) (creación, agenda, bloqueos, ciclo de vida, reprogramación, autenticación, recordatorios, pacientes, agenda web y entorno MVP local).
 - Changes archivados: [openspec/changes/archive/](openspec/changes/archive/).
 - Evidencias de entrega: [docs/evidencias/](docs/evidencias/).
 

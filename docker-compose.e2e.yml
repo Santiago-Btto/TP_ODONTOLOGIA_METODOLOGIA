@@ -1,0 +1,22 @@
+# Sólo para el lanzador E2E: proyecto Compose único, sin publicar puertos del host.
+services:
+  db:
+    ports: !reset []
+  redis:
+    ports: !reset []
+  api:
+    ports: !reset []
+  frontend:
+    ports: !reset []
+  e2e:
+    build: ./backend
+    command: pytest -q --tb=line scripts/test_mvp_http.py
+    environment:
+      MVP_API_URL: http://api:8000
+      MVP_WEB_URL: http://frontend:80
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?Ejecutar python backend/scripts/preparar_entorno.py}
+    depends_on:
+      frontend:
+        condition: service_started
+      worker:
+        condition: service_started
