@@ -70,6 +70,8 @@ services:
   worker:
     build: ./backend
     command: python -m app.infrastructure.worker_recordatorios
+    # Reintenta solo ante caídas de Redis; el reinicio cubre cualquier otra salida inesperada.
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgresql+psycopg://turnos:turnos@db:5432/turnos
       REDIS_URL: redis://redis:6379/0

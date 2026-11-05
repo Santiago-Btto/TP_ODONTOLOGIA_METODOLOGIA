@@ -43,6 +43,9 @@ class ConfiguracionComposeMVP(unittest.TestCase):
         self.assertEqual(self.servicios["worker"]["depends_on"]["redis"]["condition"], "service_healthy")
         self.assertEqual(self.servicios["worker"]["depends_on"]["bootstrap"]["condition"], "service_completed_successfully")
 
+    def test_worker_se_reinicia_si_termina(self) -> None:
+        self.assertEqual(self.servicios["worker"].get("restart"), "unless-stopped")
+
     def test_credenciales_son_variables_obligatorias(self) -> None:
         for nombre in ("bootstrap", "api"):
             self.assertTrue(self.servicios[nombre]["environment"]["JWT_SECRET"].startswith("${JWT_SECRET:?"))
