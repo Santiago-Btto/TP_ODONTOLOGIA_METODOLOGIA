@@ -129,6 +129,8 @@ docker compose config --quiet
 docker compose ps
 ```
 
+Si `api` queda en `Created` o termina con `Temporary failure in name resolution`, revisar que ningún otro proceso (por ejemplo, un `uvicorn` local) ocupe el puerto 8000 y ejecutar `docker compose down` seguido de `docker compose up -d`.
+
 Para detener sin borrar datos: `docker compose down`. Sólo si querés reiniciar intencionalmente **esta instalación de demostración** desde cero, ejecutá `docker compose down -v`: elimina su volumen de PostgreSQL. Si cambiás `DEMO_PASSWORD` en un `.env` que ya tiene usuario creado, el bootstrap falla para evitar modificar su hash silenciosamente; restaurá el valor anterior o reiniciá de manera deliberada el volumen demo. Una base vieja sin las columnas actuales también requiere recreación local hasta C-07, que incorporará migraciones.
 
 Para obtener un token (OAuth2 password flow), usar la contraseña del `.env` local sin registrarla en logs ni en el repositorio:
@@ -319,4 +321,4 @@ Sin Docker: definir `DATABASE_URL`, `REDIS_URL` (opcional; si se omite usa cola 
 
 La [ficha de investigación](docs/skills-mcp/investigacion.md) explica la elección de una skill de revisión de escenarios y del MCP Context7 para preparar la consulta de agenda. La [guía de Context7](docs/skills-mcp/context7-configuracion.md) detalla requisitos, configuración reproducible sin secretos, comprobación y límites; el [registro de uso](docs/skills-mcp/evidencias/context7-uso.md) muestra herramientas reales y su aporte. Context7 se configura en el `~/.codex/config.toml` personal, no dentro del repositorio.
 
-La [skill de revisión de agenda](.agents/skills/revisar-escenarios-agenda/SKILL.md) está versionada en el proyecto y [su evidencia de uso](docs/skills-mcp/evidencias/skill-uso.md) muestra el hallazgo de escenarios faltantes. El [informe de aplicación](docs/skills-mcp/aplicacion.md) resume cambios, revisión crítica y límites. La [guía de video](docs/skills-mcp/guion-video.md) y [ENTREGA.md](ENTREGA.md) ayudan a completar la presentación del equipo.
+La [skill de revisión de agenda](.agents/skills/revisar-escenarios-agenda/SKILL.md) está versionada en el proyecto y [su evidencia de uso](docs/skills-mcp/evidencias/skill-uso.md) muestra el hallazgo de escenarios faltantes. El [informe de aplicación](docs/skills-mcp/aplicacion.md) resume cambios, revisión crítica y límites. [ENTREGA.md](ENTREGA.md) resume el alcance presentado en el TPI.

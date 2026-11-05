@@ -10,7 +10,7 @@
 2. Mateo Algañaraz
 3. Ezequiel Menéndez
 
-**Video (hasta 10 minutos, accesible):** se informa en el `.txt` que se sube al campus. Guion sugerido: [docs/skills-mcp/guion-video.md](docs/skills-mcp/guion-video.md).
+**Video (hasta 10 minutos, accesible):** se informa en el `.txt` que se sube al campus.
 
 **Commit de entrega:** el último commit de `main` al momento de subir el `.txt`.
 

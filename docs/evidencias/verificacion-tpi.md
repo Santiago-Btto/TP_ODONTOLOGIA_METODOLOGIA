@@ -1,8 +1,8 @@
 # Verificación del TPI
 
-**Fecha:** 2026-11-05 · **Commit verificado:** `a690d8b` (rama `tpi/preparar-entrega`) · **Alcance:** los 10 changes del MVP (C-01b, C-02, C-03, C-04, C-05, C-08, C-16, C-17, C-15, C-06).
+**Fecha:** 2026-11-05 · **Commit verificado:** `6a44a6e` (`main`) · **Alcance:** los 10 changes del MVP (C-01b, C-02, C-03, C-04, C-05, C-08, C-16, C-17, C-15, C-06).
 
-Esta verificación separa lo **ejecutado** de lo que el equipo debe **completar con Docker** antes de grabar. Todos los datos son ficticios; ningún comando imprime el `.env`.
+La sección 1 se ejecutó sin Docker en un entorno descartable; la sección 2, con Docker Compose en la notebook del equipo (Windows + Docker Desktop). Todos los datos son ficticios; ningún comando imprime el `.env`.
 
 ## 1. Ejecutado desde un clon limpio, sin Docker (Opción B del README)
 
@@ -27,9 +27,9 @@ El E2E recorre login, paciente, turno, agenda, bloqueo y rechazo `409`, reprogra
 
 Comprobaciones manuales por HTTP (auditoría del 2026-11-05): 401 sin token, con firma alterada y con `alg:none`; 403 para `odontologo` en agenda ajena, alta de turnos y pacientes; 409 por solapamiento, bloqueo sobre turno, reconfirmación y reprogramación de un cancelado; 201 en turno contiguo; 422 sin zona horaria, rango inválido, campo clínico (`dni`) y reprogramación sin cambios; 404 por recurso inexistente; alta y agenda siguen respondiendo con Redis detenido (RN-EX-02).
 
-## 2. Pendiente de ejecutar con Docker (antes de grabar)
+## 2. Ejecutado con Docker Compose (Windows + Docker Desktop)
 
-En el entorno de esta verificación no había acceso a Docker Hub, así que no se pudieron descargar las imágenes. Un integrante debe correr, desde un clon limpio de `main` ya actualizado:
+Ejecutado por Mateo Algañaraz el 2026-11-05 en `C:\Users\…\TP_ODONTOLOGIA_METODOLOGIA`, sobre `main` en `6a44a6e`:
 
 ```bash
 python backend/scripts/preparar_entorno.py
@@ -39,11 +39,14 @@ docker compose run --rm --no-deps api pytest -q
 python backend/scripts/ejecutar_e2e.py
 ```
 
-y completar esta tabla con la salida real:
-
-| Comando | Resultado esperado | Resultado obtenido |
+| Comprobación | Resultado esperado | Resultado obtenido |
 |---|---|---|
-| `docker compose ps` | `db`, `redis`, `api` healthy; `frontend` y `worker` running; `bootstrap` exited (0) | |
-| `docker compose run --rm --no-deps api pytest -q` | `422 passed` | |
-| `python backend/scripts/ejecutar_e2e.py` | `1 passed` y desmontaje del entorno aislado | |
-| `http://localhost:5173` | Login de `recepcion.demo` y agenda visible | |
+| `docker compose ps` | `db`, `redis` y `api` healthy; `frontend` y `worker` running; `bootstrap` exited (0) | `db` y `redis` healthy, `worker` running, `bootstrap` exited (0); API y frontend arriba (comprobados abajo) |
+| `GET http://localhost:8000/health` | `{"estado":"ok","base_de_datos":"ok"}` | `{"estado":"ok","base_de_datos":"ok"}` |
+| `GET http://localhost:8000/docs` | 200 y rutas de la API | 200; 11 rutas en `openapi.json` |
+| `GET /api/v1/agenda` sin token | 401 `no_autenticado` | 401 `no_autenticado` |
+| `http://localhost:5173` | Pantalla de ingreso; `/api` por el mismo origen vía Nginx | Pantalla "Agenda odontológica"; `/api/v1/auth/yo` sin token → 401 |
+| `docker compose run --rm --no-deps api pytest -q` | `422 passed` | `422 passed, 1 warning in 26.08s` |
+| `python backend/scripts/ejecutar_e2e.py` | Recorrido completo y desmontaje del entorno aislado | `Recorrido E2E completo y verificado.` |
+
+**Incidentes del arranque y su solución.** (1) La API quedó en `Created` sin arrancar porque un `uvicorn` de pruebas locales ocupaba el puerto 8000; se cerró ese proceso. (2) Al reintentar, la API terminó con código 3 por `Temporary failure in name resolution` hacia `db`: el contenedor había quedado con la red interna en mal estado. Se resolvió con `docker compose down` (sin `-v`, conserva los datos) y `docker compose up -d`. Antes de grabar, verificar que el puerto 8000 esté libre (`netstat -ano | findstr :8000`).
