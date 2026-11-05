@@ -1,5 +1,7 @@
 # Verificacion de entrega - turnos-odontologia
 
+> **Documento histórico del Parcial 2.** Corresponde a la entrega de la fundación y C-01b (40 tests). La verificación vigente del TPI, con los 10 changes del MVP, está en [verificacion-tpi.md](verificacion-tpi.md).
+
 **Fecha de verificacion:** 2026-10-10 (actualiza la del 2026-10-09)
 **Proyecto:** `turnos-odontologia`  
 **Integrante/s:** Santiago Barretto / Mateo Algañaraz / Ezequiel Menéndez

@@ -274,6 +274,18 @@
         "path": "openspec/changes/archive/2026-11-02-registrar-paciente-minimo",
         "stack": "FastAPI + SQLAlchemy + PostgreSQL",
         "verify": "409 passed"
+      },
+      {
+        "change": "agenda-web-react",
+        "path": "openspec/changes/archive/2026-11-03-agenda-web-react",
+        "stack": "React + TypeScript + Vite (frontend) sobre la API FastAPI",
+        "verify": "24 passed (frontend), 409 passed (backend)"
+      },
+      {
+        "change": "flujo-mvp-docker-compose",
+        "path": "openspec/changes/archive/2026-11-03-flujo-mvp-docker-compose",
+        "stack": "Docker Compose: PostgreSQL + Redis + API + worker + frontend",
+        "verify": "419 passed (backend), 24 passed (frontend), E2E HTTP aislado"
       }
     ],
     "active": []

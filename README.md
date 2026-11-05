@@ -8,6 +8,33 @@ Sistema de turnos y agenda para consultorios odontológicos (mercado argentino),
 
 > Todas las rutas `/api/v1` exigen un token JWT (C-08). La API sigue siendo interna: rate limiting, CORS y exposición pública llegan con C-09. Todos los datos son ficticios.
 
+## Completo y pendiente
+
+**Completo (MVP, 10 changes implementados, verificados y archivados en [openspec/changes/archive/](openspec/changes/archive/)):**
+
+| Change | Qué entrega | Verificación |
+|---|---|---|
+| C-01b `crear-turno-sin-solapamientos-fastapi` | Alta de turnos sin solapamientos por profesional ni box, con restricción `EXCLUDE` en PostgreSQL | pytest dominio/aplicación/persistencia/API |
+| C-02 `consultar-agenda` | `GET /api/v1/agenda` por rango con filtros de profesional y box | pytest |
+| C-03 `bloquear-disponibilidad` | Bloqueos de profesional o box; el alta de turnos los respeta | pytest, incluida carrera turno↔bloqueo |
+| C-04 `reprogramar-turno-atomicamente` | `PATCH /api/v1/turnos/{id}` atómico con historial antes/después | pytest, incluidas carreras reprogramación↔alta |
+| C-05 `cancelar-y-confirmar-turnos` | Confirmar y cancelar; cancelar libera el horario | pytest |
+| C-08 `autenticar-con-jwt` | Login OAuth2, JWT HS256, Argon2id, roles y actor en el historial | pytest |
+| C-16 `recordatorio-simulado-con-redis` | Encolado tras commit, worker con notificador simulado e idempotencia | pytest y worker en ejecución |
+| C-17 `registrar-paciente-minimo` | Alta y búsqueda de pacientes con datos mínimos, sin datos clínicos | pytest |
+| C-15 `agenda-web-react` | Agenda web: login, vista diaria/semanal, filtros, pacientes y alta de turnos | vitest y build `strict` |
+| C-06 `flujo-mvp-docker-compose` | Compose con datos demo, worker y E2E HTTP aislado | `check_compose_mvp.py` y `ejecutar_e2e.py` |
+
+Evidencia de la última verificación: [docs/evidencias/verificacion-tpi.md](docs/evidencias/verificacion-tpi.md).
+
+**Pendiente (fuera del alcance presentado, planificado en [CHANGES.md](CHANGES.md)):**
+
+- C-07 migraciones versionadas y respaldo: hoy el esquema se crea con `create_all`; un cambio de esquema exige recrear la base demo.
+- C-09 API publicable: rate limiting, CORS, idempotencia de comandos y revocación de tokens.
+- C-14 auditoría operativa y observabilidad.
+- C-10 a C-13 integraciones reales (WhatsApp, cobros, calendario externo) e historia clínica.
+- Limitaciones conocidas del MVP: la web no tiene catálogo de profesionales, boxes ni prestaciones (se usan los IDs demo); la web no expone confirmar, cancelar, reprogramar ni bloquear (se hacen por API/Swagger); la consulta de agenda no pagina ni limita el rango; la ventana de cancelación y la política de sobreturnos siguen abiertas en [knowledge-base/10_preguntas_abiertas.md](knowledge-base/10_preguntas_abiertas.md).
+
 ## Estructura
 
 ```text
