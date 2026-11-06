@@ -52,3 +52,16 @@ test('borra el token al recibir 401 protegido', async () => {
   expect(client.getToken()).toBeNull()
   expect(expired).toHaveBeenCalledOnce()
 })
+
+test('delega en fetch global sin perder contexto al instanciarse sin fetcher', async () => {
+  const mockGlobalFetch = vi.fn<typeof fetch>().mockResolvedValue(new Response('[]', { status: 200 }))
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = mockGlobalFetch
+  try {
+    const client = new ApiClient()
+    await client.agenda({ inicio: '2026-11-03T00:00:00-03:00', fin: '2026-11-04T00:00:00-03:00' })
+    expect(mockGlobalFetch).toHaveBeenCalledOnce()
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})

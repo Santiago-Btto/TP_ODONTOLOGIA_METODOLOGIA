@@ -76,7 +76,10 @@ function messageFromError(body: unknown, status: number): { message: string; cod
 export class ApiClient {
   private token: string | null = null
 
-  constructor(private readonly fetcher: typeof fetch = fetch, private readonly onUnauthorized: () => void = () => {}) {}
+  constructor(
+    private readonly fetcher: typeof fetch = (...args) => fetch(...args),
+    private readonly onUnauthorized: () => void = () => {},
+  ) {}
 
   setToken(token: string | null): void { this.token = token }
   getToken(): string | null { return this.token }
